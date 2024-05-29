@@ -1,12 +1,12 @@
-/** This file contains the JS environment for creating English timelines. 
- *  
+/** This file contains the JS environment for creating English timelines.
+ *
  * Creates timelines in both Left-Right and Right-Left directions.
- * 
+ *
  * Uses variables defined in global.js.
  */
 
 // Input data for timeline(s)
-const data = [
+const data_eng = [
   {
     date: "2024-04-03 09:00:00",
     event: "Block party",
@@ -25,12 +25,18 @@ const data = [
   },
 ];
 
-//parsing dates 
-data.forEach(d => {
+//parsing dates
+data_eng.forEach((d) => {
   d.date = parseDate(d.date);
 });
 
-// Function to create the SVG element with a title
+/**
+ * Function to create the SVG element with the provided title
+ * 
+ * @param {string} containerId 
+ * @param {string} title 
+ * @returns {d3.Selection}  an SVG element
+ */
 function createSVG(containerId, title) {
   const svg = d3
     .select(containerId)
@@ -49,86 +55,46 @@ function createSVG(containerId, title) {
 
   return svg;
 }
-
-// Function to set up the x scale (time scale)
+ 
+/**
+ * Function to set up the x scale (time scale)
+ * 
+ * @param {Array} domain 
+ * @param {Array} range 
+ * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the x-scale to be used for the vis)
+ */
 function createXScale(domain, range) {
   return d3.scaleTime().domain(domain).range(range);
 }
 
-// Function to set up the x-axis with a custom date format
+/**
+ * Function to set up the x axis (horizontal axis)
+ * 
+ * @param {d3.ScaleTime<number, number>} xScale - A D3 time scale object
+ * @returns {d3.Axis<number>} the x-axis to be used in the vis
+ */
 function createXAxis(xScale) {
   const engTimeFormat = d3.timeFormat("%A, %B %e \n%-I%p");
-  return d3.axisBottom(xScale).tickFormat(engTimeFormat).tickValues(data.map(d => d.date));
-}
-
-// Function to render the visualization
-function renderVis(svg, xScale) {
-  const xAxis = createXAxis(xScale);
-  
-  // Add the x-axis to the SVG
-  svg
-    .append("g")
-    .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .call(xAxis)
-    .selectAll(".tick text")
-    .each(function() {
-      const el = d3.select(this);
-      const lines = el.text().split("\n");
-      el.text("");
-      for (let i = 0; i < lines.length; i++) {
-        el.append("tspan")
-          .attr("x", 0)
-          .attr("dy", i === 0 ? "1em" : "1.3em")
-          .text(lines[i]);
-      }
-    });
-
-  const eventGroup = svg.append("g").attr("class", "events");
-
-  // Add lines connecting the timeline to the event dots
-  eventGroup
-    .selectAll(".event-line")
-    .data(data)
-    .enter()
-    .append("line")
-    .attr("class", "event-line")
-    .attr("x1", d => xScale(d.date))
-    .attr("x2", d => xScale(d.date))
-    .attr("y1", height - margin.bottom)
-    .attr("y2", height / 2)
-    .attr("stroke", "black")
-    .attr("stroke-width", 1);
-
-  // Add the events to the timeline
-  eventGroup
-    .selectAll(".event")
-    .data(data)
-    .enter()
-    .append("circle")
-    .attr("class", "event")
-    .attr("cx", d => xScale(d.date))
-    .attr("cy", height / 2)
-    .attr("r", 5);
-
-  // Add labels for each event
-  eventGroup
-    .selectAll(".event-label")
-    .data(data)
-    .enter()
-    .append("text")
-    .attr("class", "event-label")
-    .attr("x", d => xScale(d.date))
-    .attr("y", height / 2 - 20)
-    .attr("text-anchor", "middle")
-    .text(d => d.event);
+  return d3
+    .axisBottom(xScale)
+    .tickFormat(engTimeFormat)
+    .tickValues(data_eng.map((d) => d.date));
 }
 
 // funcation call to create the timeline (English L-R)
 const svgEngLR = createSVG("#timelineELR", "English L-R");
-const xScaleEngLR = createXScale(d3.extent(data, d => d.date), [margin.left, width - margin.right]);
-renderVis(svgEngLR, xScaleEngLR);
+const xScaleEngLR = createXScale(
+  d3.extent(data_eng, (d) => d.date),
+  [margin.left, width - margin.right]
+);
+const xAxisEngLR = createXAxis(xScaleEngLR);
+renderVis(svgEngLR, xScaleEngLR, xAxisEngLR, data_eng);
 
 // function call to create the timeline (English R-L)
 const svgEngRL = createSVG("#timelineERL", "English R-L");
-const xScaleEngRL = createXScale(d3.extent(data, d => d.date), [width - margin.right, margin.left]);
-renderVis(svgEngRL, xScaleEngRL);
+const xScaleEngRL = createXScale(
+  d3.extent(data_eng, (d) => d.date),
+  [width - margin.right, margin.left]
+);
+const xAxisEngRL = createXAxis(xScaleEngRL);
+renderVis(svgEngRL, xScaleEngRL, xAxisEngRL, data_eng);
