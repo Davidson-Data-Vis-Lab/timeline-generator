@@ -6,7 +6,8 @@ const parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
 // Setting up dimensions and margins for all SVGs
 const width = 1000;
 const height = 200;
-const margin = { top: 20, right: 50, bottom: 40, left: 100 };
+const margin = { top: 20, right: 90, bottom: 40, left: 120 };
+
 
 /**
  * Function that renders the vis (timeline) for both language environments. 
@@ -21,7 +22,7 @@ function renderVis(svg, xScale, xAxis, data) {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .attr("class", "urdu-content") // also applies to English. Can be changed. 
+    .attr("class", "urdu-content") // also applies to English. Can be changed.
     .call(xAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -48,7 +49,7 @@ function renderVis(svg, xScale, xAxis, data) {
     .attr("x1", (d) => xScale(d.date))
     .attr("x2", (d) => xScale(d.date))
     .attr("y1", height - margin.bottom)
-    .attr("y2", height / 2)
+    .attr("y2", (d, i) => (i % 2 === 0 ? height / 2 : height / 2 + 30)) // Adjust y2 based on index
     .attr("stroke", "black")
     .attr("stroke-width", 1);
 
@@ -60,7 +61,7 @@ function renderVis(svg, xScale, xAxis, data) {
     .append("circle")
     .attr("class", "event")
     .attr("cx", (d) => xScale(d.date))
-    .attr("cy", height / 2)
+    .attr("cy", (d, i) => (i % 2 === 0 ? height / 2 : height / 2 + 30)) // Adjust cy based on index
     .attr("r", 5);
 
   // Add labels for each event
@@ -71,7 +72,7 @@ function renderVis(svg, xScale, xAxis, data) {
     .append("text")
     .attr("class", "event-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", height / 2 - 20)
+    .attr("y", (d, i) => (i % 2 === 0 ? height / 2 - 20 : height / 2 + 15)) // Adjust y based on index
     .attr("text-anchor", "middle")
-    .text((d) => d.event);
+    .text(d => d.event);
 }

@@ -19,7 +19,7 @@ const data_urdu = [
   },
   {
     date: "2024-05-30 10:00:00",
-    event: "بدھ بازار",
+    event: "بازار",
   },
   {
     date: "2024-04-17 16:00:00",
@@ -123,7 +123,7 @@ function createXAxis(xScale) {
   return d3
     .axisBottom(xScale)
     .tickFormat((d) => {
-      const dateFormat = d3.timeFormat("%A, %e %B");
+      const dateFormat = d3.timeFormat("%e %B");
       const formattedDate = dateFormat(d);
       const formattedTime = urduTimeFormat(d);
       return `${formattedDate}\n ${formattedTime}`;

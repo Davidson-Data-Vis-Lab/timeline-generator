@@ -1,3 +1,7 @@
+/* General styling */
+body{
+    font-size: small;
+}
 /* Timeline styling  */
 .timeline {
     width: 100%;

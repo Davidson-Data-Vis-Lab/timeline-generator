@@ -8,20 +8,52 @@
 // Input data for timeline(s)
 const data_eng = [
   {
-    date: "2024-04-03 09:00:00",
-    event: "Block party",
+    date: "2024-01-21 10:00:00",
+    event: "Public spaces survey",
   },
   {
-    date: "2024-05-15 14:00:00",
-    event: "Community meeting",
+    date: "2024-02-14 11:30:00",
+    event: "Emergency alert system test",
   },
   {
-    date: "2024-04-17 16:00:00",
-    event: "Town Hall opening",
+    date: "2024-03-30 14:00:00",
+    event: "Public land planning",
   },
   {
-    date: "2024-05-30 10:00:00",
-    event: "Farmers Market",
+    date: "2024-04-25 09:30:00",
+    event: "Reviewed pension budget announced",
+  },
+  {
+    date: "2024-05-17 08:00:00",
+    event: "Local elections",
+  },
+  {
+    date: "2024-06-28 15:00:00",
+    event: "Congressional hearing",
+  },
+  {
+    date: "2024-07-06 13:00:00",
+    event: "New police department opens",
+  },
+  {
+    date: "2024-08-09 12:00:00",
+    event: "Finance minister retirement",
+  },
+  {
+    date: "2024-09-05 16:00:00",
+    event: "Transportation survey",
+  },
+  {
+    date: "2024-10-12 18:30:00",
+    event: "Disaster relief fundraiser",
+  },
+  {
+    date: "2024-11-03 10:30:00",
+    event: "Tax code updated",
+  },
+  {
+    date: "2024-12-08 17:00:00",
+    event: "Town hall meeting",
   },
 ];
 
@@ -32,9 +64,9 @@ data_eng.forEach((d) => {
 
 /**
  * Function to create the SVG element with the provided title
- * 
- * @param {string} containerId 
- * @param {string} title 
+ *
+ * @param {string} containerId
+ * @param {string} title
  * @returns {d3.Selection}  an SVG element
  */
 function createSVG(containerId, title) {
@@ -55,12 +87,12 @@ function createSVG(containerId, title) {
 
   return svg;
 }
- 
+
 /**
  * Function to set up the x scale (time scale)
- * 
- * @param {Array} domain 
- * @param {Array} range 
+ *
+ * @param {Array} domain
+ * @param {Array} range
  * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the x-scale to be used for the vis)
  */
 function createXScale(domain, range) {
@@ -69,12 +101,12 @@ function createXScale(domain, range) {
 
 /**
  * Function to set up the x axis (horizontal axis)
- * 
+ *
  * @param {d3.ScaleTime<number, number>} xScale - A D3 time scale object
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
 function createXAxis(xScale) {
-  const engTimeFormat = d3.timeFormat("%A, %B %e \n%-I%p");
+  const engTimeFormat = d3.timeFormat("%B %e \n%-I%p");
   return d3
     .axisBottom(xScale)
     .tickFormat(engTimeFormat)
