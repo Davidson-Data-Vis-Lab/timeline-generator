@@ -21,6 +21,7 @@ function renderVis(svg, xScale, xAxis, data) {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
+    .attr("class", "urdu-content") // also applies to English. Can be changed. 
     .call(xAxis)
     .selectAll(".tick text")
     .each(function () {
