@@ -6,7 +6,7 @@ const parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
 // Setting up dimensions and margins for all SVGs
 const width = 1000;
 const height = 200;
-const margin = { top: 20, right: 90, bottom: 40, left: 120 };
+const margin = { top: 20, right: 90, bottom: 60, left: 120 };
 
 
 /**
@@ -15,9 +15,10 @@ const margin = { top: 20, right: 90, bottom: 40, left: 120 };
  * @param {d3.Selection} svg 
  * @param {d3.ScaleTime<number, number>} xScale - xScale to use according to language
  * @param {d3.Axis<number>} xAxis - xAxis to use according to language
+ * @param {string} lang - the language of the timeline (needed for lineHeight)
  * @param {Object} data - English or Urdu data
  */
-function renderVis(svg, xScale, xAxis, data) {
+function renderVis(svg, xScale, xAxis, data, lang) {
   // Add the x-axis to the SVG
   svg
     .append("g")
@@ -62,7 +63,7 @@ function renderVis(svg, xScale, xAxis, data) {
     .attr("class", "event")
     .attr("cx", (d) => xScale(d.date))
     .attr("cy", (d, i) => (i % 2 === 0 ? height / 2 : height / 2 + 30)) // Adjust cy based on index
-    .attr("r", 5);
+    .attr("r", 3);
 
   // Add labels for each event
   eventGroup
@@ -72,7 +73,28 @@ function renderVis(svg, xScale, xAxis, data) {
     .append("text")
     .attr("class", "event-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", (d, i) => (i % 2 === 0 ? height / 2 - 20 : height / 2 + 15)) // Adjust y based on index
-    .attr("text-anchor", "middle")
-    .text(d => d.event);
+    .attr("y", (d, i) => ((lang==="en" ? (i % 2 === 0 ? height / 2 - 20: height / 2 + 10 ) : (i % 2 === 0 ? height / 2 - 30: height / 2 - 20)))) // Adjust y based on index
+    .attr("text-anchor", "middle") 
+    .each(function (d) {
+      const el = d3.select(this);
+      const words = d.event.split(' ');
+      let line = [];
+      let lineNumber = 0;
+
+      const lineHeight = (lang === "en" ? 1 : 1.2); //em
+      const maxWidth = 100; // Adjust max width as needed
+      let tspan = el.append('tspan').attr('x', xScale(d.date)).attr('dy', '0em');
+      words.forEach(word => {
+        line.push(word);
+        tspan.text(line.join(' '));
+        if (tspan.node().getComputedTextLength() > maxWidth) {
+          line.pop();
+          tspan.text(line.join(' '));
+          line = [word];
+          tspan = el.append('tspan').attr('x', xScale(d.date)).attr('dy', ++lineNumber * lineHeight + 'em').text(word);
+        }
+      });
+    });
 }
+
+

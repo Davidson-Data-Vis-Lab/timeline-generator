@@ -16,7 +16,7 @@
     <!-- English Timelines  -->
     <div class="timeline" id="timelineELR"></div>
     <div class="timeline" id="timelineERL"></div>
-    
+
     <!-- Urdu Timelines -->
     <div class="timeline urdu-content" id="timelineULR"></div>
     <div class="timeline urdu-content" id="timelineURL"></div>
@@ -26,7 +26,12 @@
     <!-- Timeline Environments -->
     <script src="/timeline-creation/js/global.js"></script>
     <script src="/timeline-creation/js/english-timeline.js"></script>
-    <script src="/timeline-creation/js/urdu-timeline.js"></script>
+    <!-- <script src="/timeline-creation/js/urdu-timeline.js"></script> -->
+
+    <!-- Note:
+    due to changes in the time format, using d3.timeFormat, using both language environments 
+    on the same web page presents issues. Ensure only one language script is called on at a time. -->
+
 </body>
 
 </html>

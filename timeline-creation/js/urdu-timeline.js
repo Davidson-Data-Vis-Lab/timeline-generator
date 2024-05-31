@@ -7,31 +7,6 @@
  * Uses variables defined in global.js.
  */
 
-// input data for timeline(s)
-const data_urdu = [
-  {
-    date: "2024-04-03 09:00:00",
-    event: "محلہ پارٹی",
-  },
-  {
-    date: "2024-05-15 14:00:00",
-    event: "کمیونٹی میٹنگ",
-  },
-  {
-    date: "2024-05-30 10:00:00",
-    event: "بازار",
-  },
-  {
-    date: "2024-04-17 16:00:00",
-    event: "ضلعی مرکز کا افتتاح",
-  },
-];
-
-// parsing dates
-data_urdu.forEach((d) => {
-  d.date = parseDate(d.date);
-});
-
 // Defining Urdu locale for date and time formatting
 const urduLocale = {
   dateTime: "%A, %e %B %Y, %X",
@@ -72,9 +47,9 @@ const urduLocale = {
 
 /**
  * Function to create the SVG element with the provided title
- * 
- * @param {string} containerId 
- * @param {string} title 
+ *
+ * @param {string} containerId the HTML element where the timeline should render
+ * @param {string} title the title for the timeline, ex. "English Left- Right"
  * @returns {d3.Selection}  an SVG element
  */
 function createSVG(containerId, title) {
@@ -98,9 +73,9 @@ function createSVG(containerId, title) {
 
 /**
  * Function to set up the x scale (time scale)
- * 
- * @param {Array} domain 
- * @param {Array} range 
+ *
+ * @param {Array} domain the domain for the time scale; extent of dates
+ * @param {Array} range the range for the time scale; available width of the timeline
  * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the x-scale to be used for the vis)
  */
 function createXScale(domain, range) {
@@ -109,11 +84,11 @@ function createXScale(domain, range) {
 
 /**
  * Function to set up the x axis (horizontal axis)
- * 
+ *
  * @param {d3.ScaleTime<number, number>} xScale - A D3 time scale object
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
-function createXAxis(xScale) {
+function createXAxis(xScale, data) {
   // using the Urdu locale
   d3.timeFormatDefaultLocale(urduLocale);
 
@@ -123,29 +98,44 @@ function createXAxis(xScale) {
   return d3
     .axisBottom(xScale)
     .tickFormat((d) => {
-      const dateFormat = d3.timeFormat("%e %B");
+      const dateFormat = d3.timeFormat("%Y \n%e %B");
       const formattedDate = dateFormat(d);
       const formattedTime = urduTimeFormat(d);
       return `${formattedDate}\n ${formattedTime}`;
     })
 
-    .tickValues(data_urdu.map((d) => d.date));
+    .tickValues(data.map((d) => d.date));
 }
 
-// function call to create the timeline (Urdu L-R)
-const svgUrduLR = createSVG("#timelineULR", "Urdu L-R");
-const xScaleUrduLR = createXScale(
-  d3.extent(data_urdu, (d) => d.date),
-  [margin.left, width - margin.right]
-);
-const xAxisUrduLR = createXAxis(xScaleUrduLR);
-renderVis(svgUrduLR, xScaleUrduLR, xAxisUrduLR, data_urdu);
+/**
+ * This function calls the renderVis() function in global.js to render the timeline,
+ * according to the language environment scales and axis.
+ *
+ * @param {string} filename the filepath for the input data csv
+ * @param {string} dom_element the HTML element where the timeline should render
+ * @param {string} title the title of the timeline
+ */
+function callRenderUrdu(filename, dom_element, title) {
+  d3.csv(filename).then((_data) => {
+    data = _data; //local copy of data
 
-// function call to create the timeline (Urdu R-L)
-const svgUrduRL = createSVG("#timelineURL", "Urdu R-L");
-const xScaleUrduRL = createXScale(
-  d3.extent(data_urdu, (d) => d.date),
-  [width - margin.right, margin.left]
-);
-const xAxisUrduRL = createXAxis(xScaleUrduRL);
-renderVis(svgUrduRL, xScaleUrduRL, xAxisUrduRL, data_urdu);
+    //data handling
+    data.forEach((d) => {
+      d.date = parseDate(d.date);
+    });
+
+    data.sort((a, b) => a.date - b.date);
+
+    const svgU = createSVG(dom_element, title);
+    const xScaleU = createXScale(
+      d3.extent(data, (d) => d.date),
+      [margin.left, width - margin.right]
+    );
+    const xAxisU = createXAxis(xScaleU, data);
+    renderVis(svgU, xScaleU, xAxisU, data, "ur");
+  });
+}
+
+// urdu timelines rendered by calls below:
+callRenderUrdu("/timeline-creation/data/urdu.csv", "#timelineULR", "Urdu L-R");
+callRenderUrdu("/timeline-creation/data/urdu.csv", "#timelineURL", "Urdu R-L");

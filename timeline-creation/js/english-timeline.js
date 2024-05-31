@@ -5,68 +5,11 @@
  * Uses variables defined in global.js.
  */
 
-// Input data for timeline(s)
-const data_eng = [
-  {
-    date: "2024-01-21 10:00:00",
-    event: "Public spaces survey",
-  },
-  {
-    date: "2024-02-14 11:30:00",
-    event: "Emergency alert system test",
-  },
-  {
-    date: "2024-03-30 14:00:00",
-    event: "Public land planning",
-  },
-  {
-    date: "2024-04-25 09:30:00",
-    event: "Reviewed pension budget announced",
-  },
-  {
-    date: "2024-05-17 08:00:00",
-    event: "Local elections",
-  },
-  {
-    date: "2024-06-28 15:00:00",
-    event: "Congressional hearing",
-  },
-  {
-    date: "2024-07-06 13:00:00",
-    event: "New police department opens",
-  },
-  {
-    date: "2024-08-09 12:00:00",
-    event: "Finance minister retirement",
-  },
-  {
-    date: "2024-09-05 16:00:00",
-    event: "Transportation survey",
-  },
-  {
-    date: "2024-10-12 18:30:00",
-    event: "Disaster relief fundraiser",
-  },
-  {
-    date: "2024-11-03 10:30:00",
-    event: "Tax code updated",
-  },
-  {
-    date: "2024-12-08 17:00:00",
-    event: "Town hall meeting",
-  },
-];
-
-//parsing dates
-data_eng.forEach((d) => {
-  d.date = parseDate(d.date);
-});
-
 /**
  * Function to create the SVG element with the provided title
  *
- * @param {string} containerId
- * @param {string} title
+ * @param {string} containerId the HTML element where the timeline should render
+ * @param {string} title the title for the timeline, ex. "English Left- Right"
  * @returns {d3.Selection}  an SVG element
  */
 function createSVG(containerId, title) {
@@ -91,8 +34,8 @@ function createSVG(containerId, title) {
 /**
  * Function to set up the x scale (time scale)
  *
- * @param {Array} domain
- * @param {Array} range
+ * @param {Array} domain the domain for the time scale; extent of dates
+ * @param {Array} range the range for the time scale; available width of the timeline
  * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the x-scale to be used for the vis)
  */
 function createXScale(domain, range) {
@@ -105,28 +48,51 @@ function createXScale(domain, range) {
  * @param {d3.ScaleTime<number, number>} xScale - A D3 time scale object
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
-function createXAxis(xScale) {
-  const engTimeFormat = d3.timeFormat("%B %e \n%-I%p");
+function createXAxis(xScale, data) {
+  const engTimeFormat = d3.timeFormat("\n%b %e \n%-I%p");
   return d3
     .axisBottom(xScale)
     .tickFormat(engTimeFormat)
-    .tickValues(data_eng.map((d) => d.date));
+    .tickValues(data.map((d) => d.date));
 }
 
-// funcation call to create the timeline (English L-R)
-const svgEngLR = createSVG("#timelineELR", "English L-R");
-const xScaleEngLR = createXScale(
-  d3.extent(data_eng, (d) => d.date),
-  [margin.left, width - margin.right]
-);
-const xAxisEngLR = createXAxis(xScaleEngLR);
-renderVis(svgEngLR, xScaleEngLR, xAxisEngLR, data_eng);
+/**
+ * This function calls the renderVis() function in global.js to render the timeline,
+ * according to the language environment scales and axis.
+ *
+ * @param {string} filename the filepath for the input data csv
+ * @param {string} dom_element the HTML element where the timeline should render
+ * @param {string} title the title of the timeline
+ */
+function callRenderEng(filename, dom_element, title) {
+  d3.csv(filename).then((_data) => {
+    data = _data; //local copy of data
 
-// function call to create the timeline (English R-L)
-const svgEngRL = createSVG("#timelineERL", "English R-L");
-const xScaleEngRL = createXScale(
-  d3.extent(data_eng, (d) => d.date),
-  [width - margin.right, margin.left]
+    //data handling
+    data.forEach((d) => {
+      d.date = parseDate(d.date);
+    });
+
+    data.sort((a, b) => a.date - b.date);
+
+    const svgE = createSVG(dom_element, title);
+    const xScaleE = createXScale(
+      d3.extent(data, (d) => d.date),
+      [margin.left, width - margin.right]
+    );
+    const xAxisE = createXAxis(xScaleE, data);
+    renderVis(svgE, xScaleE, xAxisE, data, "en");
+  });
+}
+
+// english timelines rendered by calls below:
+callRenderEng(
+  "/timeline-creation/data/economics.csv",
+  "#timelineELR",
+  "English L-R"
 );
-const xAxisEngRL = createXAxis(xScaleEngRL);
-renderVis(svgEngRL, xScaleEngRL, xAxisEngRL, data_eng);
+callRenderEng(
+  "/timeline-creation/data/government.csv",
+  "#timelineERL",
+  "English R-L",
+);
