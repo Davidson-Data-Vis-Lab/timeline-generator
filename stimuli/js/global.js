@@ -73,7 +73,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
     .append("text")
     .attr("class", "event-label")
     .attr("x", (d) => xScale(d.date))
-    .attr("y", (d, i) => ((lang==="en" ? (i % 2 === 0 ? height / 2 - 20: height / 2 + 10 ) : (i % 2 === 0 ? height / 2 - 30: height / 2 - 20)))) // Adjust y based on index
+    .attr("y", (d, i) => ((lang==="en" ? (i % 2 === 0 ? height / 2 - 20: height / 2 + 10 ) : (i % 2 === 0 ? height / 2 - 30: height / 2)))) // Adjust y based on index
     .attr("text-anchor", "middle") 
     .each(function (d) {
       const el = d3.select(this);
@@ -81,7 +81,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
       let line = [];
       let lineNumber = 0;
 
-      const lineHeight = (lang === "en" ? 1 : 1.2); //em
+      const lineHeight = (lang === "en" ? 1 : 1.3); //em
       const maxWidth = 100; // Adjust max width as needed
       let tspan = el.append('tspan').attr('x', xScale(d.date)).attr('dy', '0em');
       words.forEach(word => {
