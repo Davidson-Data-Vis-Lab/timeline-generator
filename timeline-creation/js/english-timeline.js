@@ -64,7 +64,7 @@ function createXAxis(xScale, data) {
  * @param {string} dom_element the HTML element where the timeline should render
  * @param {string} title the title of the timeline
  */
-function callRenderEng(filename, dom_element, title) {
+function callRenderEng(filename, dom_element, title, flag = false) {
   d3.csv(filename).then((_data) => {
     data = _data; //local copy of data
 
@@ -77,8 +77,8 @@ function callRenderEng(filename, dom_element, title) {
 
     const svgE = createSVG(dom_element, title);
     const xScaleE = createXScale(
-      d3.extent(data, (d) => d.date),
-      [margin.left, width - margin.right]
+      d3.extent(data, (d) => d.date), 
+      (flag ? [width - margin.right, margin.left] : [margin.left, width - margin.right])
     );
     const xAxisE = createXAxis(xScaleE, data);
     renderVis(svgE, xScaleE, xAxisE, data, "en");
@@ -91,8 +91,10 @@ callRenderEng(
   "#timelineELR",
   "English L-R"
 );
+
 callRenderEng(
-  "/timeline-creation/data/government.csv",
+  "/timeline-creation/data/economics.csv",
   "#timelineERL",
-  "English R-L",
+  "English R-L", 
+  true
 );
