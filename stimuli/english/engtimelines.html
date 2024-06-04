@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Timeline Generator</title>
+
+    <!-- Urdu Font  -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&display=swap"
+        rel="stylesheet">
+    <!-- CSS  -->
+    <link href="/stimuli/css/timeline.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- English Timelines  -->
+    <!-- Tweak width and margins in global.js for wider timelines -->
+    <div class="timeline" id="timeline-community-LR"></div>
+    <div class="timeline" id="timeline-community-RL"></div>
+
+    <div class="timeline" id="timeline-construction-LR"></div>
+    <div class="timeline" id="timeline-construction-RL"></div>
+
+    <div class="timeline" id="timeline-deveconomics-LR"></div>
+    <div class="timeline" id="timeline-deveconomics-RL"></div>
+
+    <div class="timeline" id="timeline-disasters-LR"></div>
+    <div class="timeline" id="timeline-disasters-RL"></div>
+
+    <div class="timeline" id="timeline-economics-LR"></div>
+    <div class="timeline" id="timeline-economics-RL"></div>
+
+    <div class="timeline" id="timeline-education-LR"></div>
+    <div class="timeline" id="timeline-education-RL"></div>
+
+    <div class="timeline" id="timeline-government-LR"></div>
+    <div class="timeline" id="timeline-government-RL"></div>
+
+    <div class="timeline" id="timeline-neighborhood-LR"></div>
+    <div class="timeline" id="timeline-neighborhood-RL"></div>
+
+    <div class="timeline" id="timeline-sports-LR"></div>
+    <div class="timeline" id="timeline-sports-RL"></div>
+
+    <div class="timeline" id="timeline-traffic-LR"></div>
+    <div class="timeline" id="timeline-traffic-RL"></div>
+
+    <div class="timeline" id="timeline-university-LR"></div>
+    <div class="timeline" id="timeline-university-RL"></div>
+
+    <div class="timeline" id="timeline-weather-LR"></div>
+    <div class="timeline" id="timeline-weather-RL"></div>
+
+
+    <!-- D3 JS  -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Timeline Environments -->
+    <script src="/stimuli/js/global.js"></script>
+    <script src="/stimuli/js/english-timeline.js"></script>
+
+    <script>
+        // english timelines rendered by calls below:
+        callRenderEng("/stimuli/english/data/community.csv","#timeline-community-LR","English L-R");
+        callRenderEng("/stimuli/english/data/community.csv","#timeline-community-RL","English R-L", true);
+
+        callRenderEng("/stimuli/english/data/construction.csv", "#timeline-construction-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/construction.csv", "#timeline-construction-RL", "English R-L",true);
+
+        callRenderEng("/stimuli/english/data/deveconomics.csv", "#timeline-deveconomics-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/deveconomics.csv", "#timeline-deveconomics-RL", "English R-L",true);
+
+        callRenderEng("/stimuli/english/data/disasters.csv", "#timeline-disasters-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/disasters.csv", "#timeline-disasters-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/economics.csv", "#timeline-economics-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/economics.csv", "#timeline-economics-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/education.csv", "#timeline-education-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/education.csv", "#timeline-education-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/government.csv", "#timeline-government-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/government.csv", "#timeline-government-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/neighborhood.csv", "#timeline-neighborhood-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/neighborhood.csv", "#timeline-neighborhood-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/sports.csv", "#timeline-sports-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/sports.csv", "#timeline-sports-RL", "English R-L",true);
+
+        callRenderEng("/stimuli/english/data/traffic.csv", "#timeline-traffic-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/traffic.csv", "#timeline-traffic-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/university.csv", "#timeline-university-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/university.csv", "#timeline-university-RL", "English R-L", true);
+
+        callRenderEng("/stimuli/english/data/weather.csv", "#timeline-weather-LR", "English L-R");
+        callRenderEng("/stimuli/english/data/weather.csv", "#timeline-weather-RL", "English R-L", true);
+    </script>
+
+</body>
+
+</html>
