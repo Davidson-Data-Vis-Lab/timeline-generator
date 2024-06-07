@@ -49,7 +49,7 @@ function createXScale(domain, range) {
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
 function createXAxis(xScale, data) {
-  const engTimeFormat = d3.timeFormat("\n%b %e \n%-I%p");
+  const engTimeFormat = d3.timeFormat("%Y \n%b %e \n%-I%p");
   return d3
     .axisBottom(xScale)
     .tickFormat(engTimeFormat)
