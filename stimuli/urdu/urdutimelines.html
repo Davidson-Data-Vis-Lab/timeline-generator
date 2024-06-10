@@ -16,22 +16,22 @@
     <!-- Urdu Timelines  -->
     <!-- Tweak width and margins in global.js for wider timelines -->
     <div class="timeline urdu-content" id="timeline-community-LR"></div>
-    <div class="timeline urdu-content" id="timeline-community-RL"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-community-RL"></div> -->
 
     <div class="timeline urdu-content" id="timeline-construction-LR"></div>
-    <div class="timeline urdu-content" id="timeline-construction-RL"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-construction-RL"></div> -->
     
-    <div class="timeline urdu-content" id="timeline-disasters-LR"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-disasters-LR"></div> -->
     <div class="timeline urdu-content" id="timeline-disasters-RL"></div>
     
-    <div class="timeline urdu-content" id="timeline-economics-LR"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-economics-LR"></div> -->
     <div class="timeline urdu-content" id="timeline-economics-RL"></div>
     
-    <div class="timeline urdu-content" id="timeline-neighborhood-LR"></div>
-    <div class="timeline urdu-content" id="timeline-neighborhood-RL"></div>
+    <div class="timeline urdu-content" id="timeline-neighborhood-TB"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-neighborhood-RL"></div> -->
     
-    <div class="timeline urdu-content" id="timeline-traffic-LR"></div>
-    <div class="timeline urdu-content" id="timeline-traffic-RL"></div>
+    <div class="timeline urdu-content" id="timeline-traffic-TB"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-traffic-RL"></div> -->
 
     <!-- D3 JS  -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -42,23 +42,23 @@
 
     <script>
         // urdu timelines rendered by calls below:
-        callRenderUrdu("/stimuli/urdu/data/community_urdu.csv", "#timeline-community-LR", "Urdu L-R");
-        callRenderUrdu("/stimuli/urdu/data/community_urdu.csv", "#timeline-community-RL", "Urdu R-L", true);
+        callRenderUrdu("/stimuli/urdu/data/community_urdu.csv", "#timeline-community-LR", "Urdu L-R", "LR");
+        // callRenderUrdu("/stimuli/urdu/data/community_urdu.csv", "#timeline-community-RL", "Urdu R-L", true);
 
-        callRenderUrdu("/stimuli/urdu/data/construction_urdu.csv", "#timeline-construction-LR", "Urdu L-R");
-        callRenderUrdu("/stimuli/urdu/data/construction_urdu.csv", "#timeline-construction-RL", "Urdu R-L", true);
+        callRenderUrdu("/stimuli/urdu/data/construction_urdu.csv", "#timeline-construction-LR", "Urdu L-R", "LR");
+        // callRenderUrdu("/stimuli/urdu/data/construction_urdu.csv", "#timeline-construction-RL", "Urdu R-L", true);
 
-        callRenderUrdu("/stimuli/urdu/data/disasters_urdu.csv", "#timeline-disasters-LR", "Urdu L-R");
-        callRenderUrdu("/stimuli/urdu/data/disasters_urdu.csv", "#timeline-disasters-RL", "Urdu R-L", true);
+        // callRenderUrdu("/stimuli/urdu/data/disasters_urdu.csv", "#timeline-disasters-LR", "Urdu L-R");
+        callRenderUrdu("/stimuli/urdu/data/disasters_urdu.csv", "#timeline-disasters-RL", "Urdu R-L", "RL");
 
-        callRenderUrdu("/stimuli/urdu/data/economics_urdu.csv", "#timeline-economics-LR", "Urdu L-R");
-        callRenderUrdu("/stimuli/urdu/data/economics_urdu.csv", "#timeline-economics-RL", "Urdu R-L", true);
+        // callRenderUrdu("/stimuli/urdu/data/economics_urdu.csv", "#timeline-economics-LR", "Urdu L-R");
+        callRenderUrdu("/stimuli/urdu/data/economics_urdu.csv", "#timeline-economics-RL", "Urdu R-L", "RL");
 
-        callRenderUrdu("/stimuli/urdu/data/neighborhood_urdu.csv", "#timeline-neighborhood-LR", "Urdu L-R");
-        callRenderUrdu("/stimuli/urdu/data/neighborhood_urdu.csv", "#timeline-neighborhood-RL", "Urdu R-L", true);
+        callRenderUrdu("/stimuli/urdu/data/neighborhood_urdu.csv", "#timeline-neighborhood-TB", "Urdu T-B", "TB");
+        // callRenderUrdu("/stimuli/urdu/data/neighborhood_urdu.csv", "#timeline-neighborhood-RL", "Urdu R-L", true);
 
-        callRenderUrdu("/stimuli/urdu/data/traffic_urdu.csv", "#timeline-traffic-LR", "Urdu L-R");
-        callRenderUrdu("/stimuli/urdu/data/traffic_urdu.csv", "#timeline-traffic-RL", "Urdu R-L", true);
+        // callRenderUrdu("/stimuli/urdu/data/traffic_urdu.csv", "#timeline-traffic-LR", "Urdu L-R");
+        callRenderUrdu("/stimuli/urdu/data/traffic_urdu.csv", "#timeline-traffic-TB", "Urdu T-B", "TB");
     </script>
 
 </body>

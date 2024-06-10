@@ -1,6 +1,6 @@
 /** This file contains the JS environment for creating English timelines.
  *
- * Creates timelines in both Left-Right and Right-Left directions.
+ * Creates timelines in Left-Right, Right-Left and Top-Bottom directions.
  *
  * Uses variables defined in global.js.
  */
@@ -32,6 +32,32 @@ function createSVG(containerId, title) {
 }
 
 /**
+ * Function to create the SVG element with the provided title
+ *
+ * @param {string} containerId the HTML element where the timeline should render
+ * @param {string} title the title for the timeline, ex. "English Top-Bottom"
+ * @returns {d3.Selection}  an SVG element
+ */
+function createSVGTB(containerId, title) {
+  const svg = d3
+    .select(containerId)
+    .append("svg")
+    .attr("width", widthV + marginV.left + marginV.right)
+    .attr("height", heightV)
+    .append("g")
+    .attr("transform", `translate(${marginV.left}, 0)`);
+
+  svg
+    .append("text")
+    .attr("x", widthV / 2)
+    .attr("y", marginV.top / 2)
+    .attr("text-anchor", "middle")
+    .text(title);
+
+  return svg;
+}
+
+/**
  * Function to set up the x scale (time scale)
  *
  * @param {Array} domain the domain for the time scale; extent of dates
@@ -49,11 +75,37 @@ function createXScale(domain, range) {
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
 function createXAxis(xScale, data) {
-  const engTimeFormat = d3.timeFormat("%Y \n%b %e \n%-I%p");
+  const engTimeFormat = d3.timeFormat("%Y \n%b %e"); //\n%-I%p
   return d3
     .axisBottom(xScale)
     .tickFormat(engTimeFormat)
     .tickValues(data.map((d) => d.date));
+}
+
+/**
+ * Function to set up the y scale (time scale)
+ *
+ * @param {Array} domain the domain for the time scale; extent of dates
+ * @param {Array} range the range for the time scale; available heightV of the timeline
+ * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the y-scale to be used for the vis)
+ */
+function createYScale(domain, range) {
+  return d3.scaleTime().domain(domain).range(range);
+}
+
+/**
+ * Function to set up the y axis (vertical axis)
+ *
+ * @param {d3.ScaleTime<number, number>} yScale - A D3 time scale object
+ * @returns {d3.Axis<number>} the y-axis to be used in the vis
+ */
+function createYAxis(yScale, data) {
+  const engTimeFormat = d3.timeFormat("%b %e %Y");
+  return d3
+    .axisLeft(yScale)
+    .tickFormat(engTimeFormat)
+    .tickValues(data.map((d) => d.date))
+    .tickPadding(10); // Add padding between the axis line and the tick labels
 }
 
 /**
@@ -64,7 +116,7 @@ function createXAxis(xScale, data) {
  * @param {string} dom_element the HTML element where the timeline should render
  * @param {string} title the title of the timeline
  */
-function callRenderEng(filename, dom_element, title, flag=false) {
+function callRenderEng(filename, dom_element, title, orient) {
   d3.csv(filename).then((_data) => {
     data = _data; //local copy of data
 
@@ -75,12 +127,26 @@ function callRenderEng(filename, dom_element, title, flag=false) {
 
     data.sort((a, b) => a.date - b.date);
 
-    const svgE = createSVG(dom_element, title);
-    const xScaleE = createXScale(
-      d3.extent(data, (d) => d.date), 
-      (flag ? [width - margin.right, margin.left] : [margin.left, width - margin.right])
-    );
-    const xAxisE = createXAxis(xScaleE, data);
-    renderVis(svgE, xScaleE, xAxisE, data, "en");
+    if (orient === "RL" || orient === "LR") {
+      //if a horizontal timeline
+      const svgE = createSVG(dom_element, title);
+      const xScaleE = createXScale(
+        d3.extent(data, (d) => d.date),
+        orient === "LR"
+          ? [width - margin.right, margin.left]
+          : [margin.left, width - margin.right]
+      );
+      const xAxisE = createXAxis(xScaleE, data);
+      renderVis(svgE, xScaleE, xAxisE, data, "en");
+    } else {
+      //if a vertical timeline orient==="TB"
+      const svgETB = createSVGTB(dom_element, title);
+      const yScaleE = createYScale(
+        d3.extent(data, (d) => d.date),
+        [heightV - marginV.bottom, marginV.top]
+      );
+      const yAxisE = createYAxis(yScaleE, data);
+      renderVisTB(svgETB, yScaleE, yAxisE, data, "en");
+    }
   });
 }

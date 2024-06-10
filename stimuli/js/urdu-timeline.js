@@ -71,6 +71,25 @@ function createSVG(containerId, title) {
   return svg;
 }
 
+function createSVGTB(containerId, title) {
+  const svg = d3
+    .select(containerId)
+    .append("svg")
+    .attr("width", widthV + marginV.left + marginV.right)
+    .attr("height", heightV)
+    .append("g")
+    .attr("transform", `translate(${marginV.left}, 0)`);
+
+  svg
+    .append("text")
+    .attr("x", widthV / 2)
+    .attr("y", marginV.top / 2)
+    .attr("text-anchor", "middle")
+    .text(title);
+
+  return svg;
+}
+
 /**
  * Function to set up the x scale (time scale)
  *
@@ -93,15 +112,44 @@ function createXAxis(xScale, data) {
   d3.timeFormatDefaultLocale(urduLocale);
 
   // Custom URDU time format function for AM/PM display
-  const urduTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
+  //const urduTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
 
   return d3
     .axisBottom(xScale)
     .tickFormat((d) => {
       const dateFormat = d3.timeFormat("%Y \n%e %B");
       const formattedDate = dateFormat(d);
-      const formattedTime = urduTimeFormat(d);
-      return `${formattedDate}\n ${formattedTime}`;
+      //const formattedTime = urduTimeFormat(d);
+      return `${formattedDate}\n`; //${formattedTime}`
+    })
+
+    .tickValues(data.map((d) => d.date));
+}
+
+function createYScale(domain, range) {
+  return d3.scaleTime().domain(domain).range(range);
+}
+
+/**
+ * Function to set up the y axis (vertical axis)
+ *
+ * @param {d3.ScaleTime<number, number>} yScale - A D3 time scale object
+ * @returns {d3.Axis<number>} the y-axis to be used in the vis
+ */
+function createYAxis(yScale, data) {
+  // using the Urdu locale
+  d3.timeFormatDefaultLocale(urduLocale);
+
+  // Custom URDU time format function for AM/PM display
+  //const urduTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
+
+  return d3
+    .axisLeft(yScale)
+    .tickFormat((d) => {
+      const dateFormat = d3.timeFormat("%Y, %e %B");
+      const formattedDate = dateFormat(d);
+      //const formattedTime = urduTimeFormat(d);
+      return `${formattedDate}\n`; //${formattedTime}`
     })
 
     .tickValues(data.map((d) => d.date));
@@ -115,7 +163,7 @@ function createXAxis(xScale, data) {
  * @param {string} dom_element the HTML element where the timeline should render
  * @param {string} title the title of the timeline
  */
-function callRenderUrdu(filename, dom_element, title, flag=false) {
+function callRenderUrdu(filename, dom_element, title, orient) {
   d3.csv(filename).then((_data) => {
     data = _data; //local copy of data
 
@@ -126,12 +174,26 @@ function callRenderUrdu(filename, dom_element, title, flag=false) {
 
     data.sort((a, b) => a.date - b.date);
 
-    const svgU = createSVG(dom_element, title);
-    const xScaleU = createXScale(
-      d3.extent(data, (d) => d.date), 
-      (flag ? [width - margin.right, margin.left] : [margin.left, width - margin.right])
-    );
-    const xAxisU = createXAxis(xScaleU, data);
-    renderVis(svgU, xScaleU, xAxisU, data, "ur");
+    if (orient === "RL" || orient === "LR") {
+      //if a horizontal timeline
+      const svgU = createSVG(dom_element, title);
+      const xScaleU = createXScale(
+        d3.extent(data, (d) => d.date),
+        orient === "LR"
+          ? [width - margin.right, margin.left]
+          : [margin.left, width - margin.right]
+      );
+      const xAxisU = createXAxis(xScaleU, data);
+      renderVis(svgU, xScaleU, xAxisU, data, "ur");
+    } else {
+      //if a vertical timeline orient==="TB"
+      const svgUTB = createSVGTB(dom_element, title);
+      const yScaleU = createYScale(
+        d3.extent(data, (d) => d.date),
+        [heightV - marginV.bottom, marginV.top]
+      );
+      const yAxisU = createYAxis(yScaleU, data);
+      renderVisTB(svgUTB, yScaleU, yAxisU, data, "ur");
+    }
   });
 }
