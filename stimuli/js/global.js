@@ -81,7 +81,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
       let line = [];
       let lineNumber = 0;
 
-      const lineHeight = (lang === "en" ? 1 : 1.3); //em
+      const lineHeight = (lang === "en" ? 1 : 1.6); //em
       const maxWidth = 100; // Adjust max width as needed
       let tspan = el.append('tspan').attr('x', xScale(d.date)).attr('dy', '0em');
       words.forEach(word => {
