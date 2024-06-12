@@ -1,25 +1,30 @@
-/** This file contains global JS objects and functionality that are used by both timeline environments. */
+/** This file contains global JS objects and functionality that are used by both timeline environments.
+ *
+ * Contains two functions to create horizontal and vertical timelines respectively.
+ * 
+ * Functions defined here are called from language timeline environments, NOT from the webpage scripts. 
+ */
 
 // Parsing date strings into JavaScript Date objects
 const parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
 
-// Setting up dimensions and margins for all horizontal SVGs
+// Setting up dimensions and margins for all HORIZONTAL SVGs
 const width = 1500;
 const height = 200;
 const margin = { top: 20, right: 90, bottom: 60, left: 120 };
 
-// Setting up dimensions and margins for all vertical SVGs
+// Setting up dimensions and margins for all VERTICAL SVGs
 const widthV = 300;
-const heightV = 650; // compressed so that its not too long 
+const heightV = 650; // compressed so that its not too long
 const marginV = { top: 20, right: 90, bottom: 60, left: 120 };
 
 /**
- * Function that renders the vis (timeline) for both language environments.
+ * Function that renders the horizontal vis (timelines) for both language environments.
  *
  * @param {d3.Selection} svg
  * @param {d3.ScaleTime<number, number>} xScale - xScale to use according to language
  * @param {d3.Axis<number>} xAxis - xAxis to use according to language
- * @param {string} lang - the language of the timeline (needed for lineHeight)
+ * @param {String} lang - the language of the timeline (needed for lineHeight)
  * @param {Object} data - English or Urdu data
  */
 function renderVis(svg, xScale, xAxis, data, lang) {
@@ -117,26 +122,21 @@ function renderVis(svg, xScale, xAxis, data, lang) {
 }
 
 /**
- * Function that renders the vis (timeline) for both language environments.
+ * Function that renders the vertical vis (timelines) for both language environments.
  *
  * @param {d3.Selection} svg
  * @param {d3.ScaleTime<number, number>} yScale - yScale to use according to language
  * @param {d3.Axis<number>} yAxis - yAxis to use according to language
  * @param {Object} data - English or Urdu data
- */
-/**
- * Function that renders the vis (timeline) for both language environments.
- *
- * @param {d3.Selection} svg
- * @param {d3.ScaleTime<number, number>} yScale - yScale to use according to language
- * @param {d3.Axis<number>} yAxis - yAxis to use according to language
- * @param {Object} data - English or Urdu data
+ * @param {String} lang - the language of the timeline
  */
 function renderVisTB(svg, yScale, yAxis, data, lang) {
+  const padding = 30; //for spacing purposes; used for top padding in this case
+  
   // Add the y-axis to the SVG
   svg
     .append("g")
-    .attr("transform", `translate(${marginV.left}, 0)`)
+    .attr("transform", `translate(${marginV.left}, ${padding})`)
     .attr("class", "urdu-content") // also applies to English. Can be changed.
     .call(yAxis)
     .selectAll(".tick text")
@@ -148,8 +148,8 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
         el.append("tspan").attr("x", -10).attr("dy", "0.3em").text(lines[i]);
       }
     });
-
-  const eventGroup = svg.append("g").attr("class", "events");
+30
+  const eventGroup = svg.append("g").attr("class", "events").attr("transform", `translate(0, ${padding})`);
 
   // Add lines connecting the timeline to the event dots
   eventGroup
@@ -158,8 +158,8 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .enter()
     .append("line")
     .attr("class", "event-line")
-    .attr("x1", marginV.left - 4) // Adjust x1 to ensure space
-    .attr("x2", widthV / 2 + 45) // Adjust x2 based on index and language
+    .attr("x1", marginV.left - 4)
+    .attr("x2", widthV / 2 + 45)
     .attr("y1", (d) => yScale(d.date))
     .attr("y2", (d) => yScale(d.date))
     .attr("stroke", "black")
@@ -172,7 +172,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .enter()
     .append("circle")
     .attr("class", "event")
-    .attr("cx", widthV / 2 + 45) // Adjust cx based on index and language
+    .attr("cx", widthV / 2 + 45)
     .attr("cy", (d) => yScale(d.date))
     .attr("r", 3);
 
@@ -183,9 +183,9 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .enter()
     .append("text")
     .attr("class", "event-label")
-    .attr("x", widthV / 2 +  70) // Adjust x based on index and language
+    .attr("x", widthV / 2 + 70)
     .attr("y", (d) => yScale(d.date))
-    .attr("text-anchor", "middle") // Use "start" for LTR and "end" for RTL
+    .attr("text-anchor", "middle")
     .attr("dir", lang === "ur" ? "rtl" : "ltr")
     .each(function (d, i) {
       const el = d3.select(this);
@@ -197,7 +197,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
       const maxwidthV = 100; // Adjust max width as needed
       let tspan = el
         .append("tspan")
-        .attr("x", widthV / 2 + 100) // Adjust x based on index and language
+        .attr("x", widthV / 2 + 100)
         .attr("dy", "0em");
       words.forEach((word) => {
         line.push(word);
@@ -208,7 +208,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
           line = [word];
           tspan = el
             .append("tspan")
-            .attr("x", widthV / 2 + 100) // Adjust x based on index and language
+            .attr("x", widthV / 2 + 100)
             .attr("dy", ++lineNumber * lineHeight + "em")
             .text(word);
         }

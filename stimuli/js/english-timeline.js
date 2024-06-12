@@ -2,14 +2,14 @@
  *
  * Creates timelines in Left-Right, Right-Left and Top-Bottom directions.
  *
- * Uses variables defined in global.js.
+ * Uses variables and functions defined in global.js.
  */
 
 /**
  * Function to create the SVG element with the provided title
  *
- * @param {string} containerId the HTML element where the timeline should render
- * @param {string} title the title for the timeline, ex. "English Left- Right"
+ * @param {String} containerId the HTML element where the timeline should render
+ * @param {String} title the title for the timeline, ex. "English Left- Right"
  * @returns {d3.Selection}  an SVG element
  */
 function createSVG(containerId, title) {
@@ -32,10 +32,10 @@ function createSVG(containerId, title) {
 }
 
 /**
- * Function to create the SVG element with the provided title
+ * Function to create the vertical SVG element with the provided title
  *
- * @param {string} containerId the HTML element where the timeline should render
- * @param {string} title the title for the timeline, ex. "English Top-Bottom"
+ * @param {String} containerId the HTML element where the timeline should render
+ * @param {String} title the title for the timeline, ex. "English Top-Bottom"
  * @returns {d3.Selection}  an SVG element
  */
 function createSVGTB(containerId, title) {
@@ -75,7 +75,7 @@ function createXScale(domain, range) {
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
 function createXAxis(xScale, data) {
-  const engTimeFormat = d3.timeFormat("%Y \n%b %e"); //\n%-I%p
+  const engTimeFormat = d3.timeFormat("\n%b %e"); //\n%-I%p
   return d3
     .axisBottom(xScale)
     .tickFormat(engTimeFormat)
@@ -100,7 +100,7 @@ function createYScale(domain, range) {
  * @returns {d3.Axis<number>} the y-axis to be used in the vis
  */
 function createYAxis(yScale, data) {
-  const engTimeFormat = d3.timeFormat("%b %e %Y");
+  const engTimeFormat = d3.timeFormat("%b %e");
   return d3
     .axisLeft(yScale)
     .tickFormat(engTimeFormat)
@@ -110,11 +110,12 @@ function createYAxis(yScale, data) {
 
 /**
  * This function calls the renderVis() function in global.js to render the timeline,
- * according to the language environment scales and axis.
+ * according to the language environment scales, orientation and axis.
  *
- * @param {string} filename the filepath for the input data csv
- * @param {string} dom_element the HTML element where the timeline should render
- * @param {string} title the title of the timeline
+ * @param {String} filename the filepath for the input data csv
+ * @param {String} dom_element the HTML element where the timeline should render
+ * @param {String} title the title of the timeline
+ * @param {String} orient the orientation of the timeline: "RL", "LR" or "TB"
  */
 function callRenderEng(filename, dom_element, title, orient) {
   d3.csv(filename).then((_data) => {
@@ -132,7 +133,7 @@ function callRenderEng(filename, dom_element, title, orient) {
       const svgE = createSVG(dom_element, title);
       const xScaleE = createXScale(
         d3.extent(data, (d) => d.date),
-        orient === "LR"
+        orient === "RL"
           ? [width - margin.right, margin.left]
           : [margin.left, width - margin.right]
       );
@@ -143,7 +144,7 @@ function callRenderEng(filename, dom_element, title, orient) {
       const svgETB = createSVGTB(dom_element, title);
       const yScaleE = createYScale(
         d3.extent(data, (d) => d.date),
-        [heightV - marginV.bottom, marginV.top]
+        [marginV.top, heightV - marginV.bottom]
       );
       const yAxisE = createYAxis(yScaleE, data);
       renderVisTB(svgETB, yScaleE, yAxisE, data, "en");

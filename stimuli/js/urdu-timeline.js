@@ -48,8 +48,8 @@ const urduLocale = {
 /**
  * Function to create the SVG element with the provided title
  *
- * @param {string} containerId the HTML element where the timeline should render
- * @param {string} title the title for the timeline, ex. "English Left- Right"
+ * @param {String} containerId the HTML element where the timeline should render
+ * @param {String} title the title for the timeline, ex. "English Left- Right"
  * @returns {d3.Selection}  an SVG element
  */
 function createSVG(containerId, title) {
@@ -117,7 +117,7 @@ function createXAxis(xScale, data) {
   return d3
     .axisBottom(xScale)
     .tickFormat((d) => {
-      const dateFormat = d3.timeFormat("%Y \n%e %B");
+      const dateFormat = d3.timeFormat("%e %B \n %Y");
       const formattedDate = dateFormat(d);
       //const formattedTime = urduTimeFormat(d);
       return `${formattedDate}\n`; //${formattedTime}`
@@ -146,7 +146,7 @@ function createYAxis(yScale, data) {
   return d3
     .axisLeft(yScale)
     .tickFormat((d) => {
-      const dateFormat = d3.timeFormat("%Y, %e %B");
+      const dateFormat = d3.timeFormat("%e %B");
       const formattedDate = dateFormat(d);
       //const formattedTime = urduTimeFormat(d);
       return `${formattedDate}\n`; //${formattedTime}`
@@ -157,11 +157,12 @@ function createYAxis(yScale, data) {
 
 /**
  * This function calls the renderVis() function in global.js to render the timeline,
- * according to the language environment scales and axis.
+ * according to the language environment scales, orientation and axis.
  *
- * @param {string} filename the filepath for the input data csv
- * @param {string} dom_element the HTML element where the timeline should render
- * @param {string} title the title of the timeline
+ * @param {String} filename the filepath for the input data csv
+ * @param {String} dom_element the HTML element where the timeline should render
+ * @param {String} title the title of the timeline
+ * @param {String} orient the orientation of the timeline: "RL", "LR" or "TB"
  */
 function callRenderUrdu(filename, dom_element, title, orient) {
   d3.csv(filename).then((_data) => {
@@ -179,7 +180,7 @@ function callRenderUrdu(filename, dom_element, title, orient) {
       const svgU = createSVG(dom_element, title);
       const xScaleU = createXScale(
         d3.extent(data, (d) => d.date),
-        orient === "LR"
+        orient === "RL"
           ? [width - margin.right, margin.left]
           : [margin.left, width - margin.right]
       );
@@ -190,7 +191,7 @@ function callRenderUrdu(filename, dom_element, title, orient) {
       const svgUTB = createSVGTB(dom_element, title);
       const yScaleU = createYScale(
         d3.extent(data, (d) => d.date),
-        [heightV - marginV.bottom, marginV.top]
+        [ marginV.top, heightV - marginV.bottom]
       );
       const yAxisU = createYAxis(yScaleU, data);
       renderVisTB(svgUTB, yScaleU, yAxisU, data, "ur");
