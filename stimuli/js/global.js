@@ -32,7 +32,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .attr("class", "urdu-content") // also applies to English. Can be changed.
+    .attr("class", (lang==="ur" ? "urdu-content": "arb")) // also applies to English. Can be changed.
     .call(xAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -137,7 +137,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
   svg
     .append("g")
     .attr("transform", `translate(${marginV.left}, ${padding})`)
-    .attr("class", "urdu-content") // also applies to English. Can be changed.
+    .attr("class", (lang==="ur" ? "urdu-content": "arb")) // also applies to English. Can be changed.
     .call(yAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -194,7 +194,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
       let lineNumber = 0;
 
       const lineHeight = lang === "en" ? 1 : 1.6; //em
-      const maxwidthV = 100; // Adjust max width as needed
+      const maxwidthV = 150; // Adjust max width as needed
       let tspan = el
         .append("tspan")
         .attr("x", widthV / 2 + 100)

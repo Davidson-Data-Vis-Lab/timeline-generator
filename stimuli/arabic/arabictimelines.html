@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Timeline Generator</title>
+
+    <!-- Urdu Font  -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&display=swap"
+        rel="stylesheet">
+    <!-- CSS  -->
+    <link href="/stimuli/css/timeline.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Urdu Timelines  -->
+    <!-- Tweak width and margins in global.js for wider timelines -->
+
+    <div class="timeline" id="timeline-community-LR"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-community-RL"></div> -->
+
+    <div class="timeline" id="timeline-construction-LR"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-construction-RL"></div> -->
+    
+    <!-- <div class="timeline urdu-content" id="timeline-disasters-LR"></div> -->
+    <div class="timeline" id="timeline-disasters-RL"></div>
+    
+    <!-- <div class="timeline urdu-content" id="timeline-economics-LR"></div> -->
+    <div class="timeline" id="timeline-economics-RL"></div>
+    
+    <div class="timeline" id="timeline-neighborhood-TB"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-neighborhood-RL"></div> -->
+    
+    <div class="timeline" id="timeline-traffic-TB"></div>
+    <!-- <div class="timeline urdu-content" id="timeline-traffic-RL"></div> -->
+
+    <!-- D3 JS  -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Timeline Environments -->
+    <script src="/stimuli/js/global.js"></script>
+    <script src="/stimuli/js/arabic-timeline.js"></script>
+
+    <script>
+        // arabic timelines rendered by calls below:
+
+        callRenderArb("/stimuli/arabic/data/community_arabic.csv", "#timeline-community-LR", "Arabic L-R", "LR");
+
+        callRenderArb("/stimuli/arabic/data/construction_arabic.csv", "#timeline-construction-LR", "Arabic L-R", "LR");
+
+        callRenderArb("/stimuli/arabic/data/disasters_arabic.csv", "#timeline-disasters-RL", "Arabic R-L", "RL");
+
+        callRenderArb("/stimuli/arabic/data/economics_arabic.csv", "#timeline-economics-RL", "Arabic R-L", "RL");
+
+        callRenderArb("/stimuli/arabic/data/neighborhood_arabic.csv", "#timeline-neighborhood-TB", "Arabic T-B", "TB");
+  
+        callRenderArb("/stimuli/arabic/data/traffic_arabic.csv", "#timeline-traffic-TB", "Arabic T-B", "TB");
+    </script>
+
+</body>
+
+</html>

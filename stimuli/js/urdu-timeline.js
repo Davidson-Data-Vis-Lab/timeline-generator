@@ -1,6 +1,6 @@
 /** This file contains the JS environment for creating Urdu timelines.
  *
- * Creates timelines in both Left-Right and Right-Left directions.
+ * Creates timelines in Left-Right, Right-Left and Top-Bottom directions.
  *
  * Contains a customised Urdu date & time Locale for date translations to Urdu.
  *
@@ -146,7 +146,7 @@ function createYAxis(yScale, data) {
   return d3
     .axisLeft(yScale)
     .tickFormat((d) => {
-      const dateFormat = d3.timeFormat("%e %B");
+      const dateFormat = d3.timeFormat("%Y ،%e %B");
       const formattedDate = dateFormat(d);
       //const formattedTime = urduTimeFormat(d);
       return `${formattedDate}\n`; //${formattedTime}`
