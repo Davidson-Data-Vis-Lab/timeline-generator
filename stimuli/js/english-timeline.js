@@ -134,11 +134,11 @@ function callRenderEng(filename, dom_element, title, orient) {
       const xScaleE = createXScale(
         d3.extent(data, (d) => d.date),
         orient === "RL"
-          ? [width - margin.right, margin.left]
-          : [margin.left, width - margin.right]
+          ? [width - margin.right - 380, margin.left]
+          : [margin.left, width - margin.right- 380]
       );
       const xAxisE = createXAxis(xScaleE, data);
-      renderVis(svgE, xScaleE, xAxisE, data, "en");
+      renderVis(svgE, xScaleE, xAxisE, data, "en")
     } else {
       //if a vertical timeline orient==="TB"
       const svgETB = createSVGTB(dom_element, title);

@@ -1,8 +1,8 @@
 /** This file contains global JS objects and functionality that are used by both timeline environments.
  *
  * Contains two functions to create horizontal and vertical timelines respectively.
- * 
- * Functions defined here are called from language timeline environments, NOT from the webpage scripts. 
+ *
+ * Functions defined here are called from language timeline environments, NOT from the webpage scripts.
  */
 
 // Parsing date strings into JavaScript Date objects
@@ -10,7 +10,7 @@ const parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
 
 // Setting up dimensions and margins for all HORIZONTAL SVGs
 const width = 1500;
-const height = 200;
+const height = 220;
 const margin = { top: 20, right: 90, bottom: 60, left: 120 };
 
 // Setting up dimensions and margins for all VERTICAL SVGs
@@ -32,7 +32,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .attr("class", (lang==="ur" ? "urdu-content": "arb")) // also applies to English. Can be changed.
+    .attr("class", lang === "ur" ? "urdu-content" : "arb") // also applies to English. Can be changed.
     .call(xAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -132,12 +132,12 @@ function renderVis(svg, xScale, xAxis, data, lang) {
  */
 function renderVisTB(svg, yScale, yAxis, data, lang) {
   const padding = 30; //for spacing purposes; used for top padding in this case
-  
+
   // Add the y-axis to the SVG
   svg
     .append("g")
     .attr("transform", `translate(${marginV.left}, ${padding})`)
-    .attr("class", (lang==="ur" ? "urdu-content": "arb")) // also applies to English. Can be changed.
+    .attr("class", lang === "ur" ? "urdu-content" : "arb") // also applies to English. Can be changed.
     .call(yAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -148,8 +148,11 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
         el.append("tspan").attr("x", -10).attr("dy", "0.3em").text(lines[i]);
       }
     });
-30
-  const eventGroup = svg.append("g").attr("class", "events").attr("transform", `translate(0, ${padding})`);
+  30;
+  const eventGroup = svg
+    .append("g")
+    .attr("class", "events")
+    .attr("transform", `translate(0, ${padding})`);
 
   // Add lines connecting the timeline to the event dots
   eventGroup
@@ -194,7 +197,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
       let lineNumber = 0;
 
       const lineHeight = lang === "en" ? 1 : 1.6; //em
-      const maxwidthV = 150; // Adjust max width as needed
+      const maxwidthV = lang === "ar" ? 150 : 100; // Adjust max width as needed
       let tspan = el
         .append("tspan")
         .attr("x", widthV / 2 + 100)
