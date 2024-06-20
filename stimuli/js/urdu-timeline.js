@@ -117,7 +117,7 @@ function createXAxis(xScale, data) {
   return d3
     .axisBottom(xScale)
     .tickFormat((d) => {
-      const dateFormat = d3.timeFormat("%e %B \n %Y");
+      const dateFormat = d3.timeFormat("%e %B \n");
       const formattedDate = dateFormat(d);
       //const formattedTime = urduTimeFormat(d);
       return `${formattedDate}\n`; //${formattedTime}`
@@ -181,8 +181,8 @@ function callRenderUrdu(filename, dom_element, title, orient) {
       const xScaleU = createXScale(
         d3.extent(data, (d) => d.date),
         orient === "RL"
-          ? [width - margin.right, margin.left]
-          : [margin.left, width - margin.right]
+          ? [width - margin.right-380, margin.left]
+          : [margin.left, width - margin.right-380]
       );
       const xAxisU = createXAxis(xScaleU, data);
       renderVis(svgU, xScaleU, xAxisU, data, "ur");
