@@ -32,7 +32,10 @@ function renderVis(svg, xScale, xAxis, data, lang) {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .attr("class", lang === "ur" ? "urdu-content" : "arb") // also applies to English. Can be changed.
+    .attr(
+      "class",
+      lang === "ur" ? "urdu-content" : lang === "ar" ? "arb-content" : "eng"
+    )
     .call(xAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -83,7 +86,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
     .attr("class", "event-label")
     .attr("x", (d) => xScale(d.date))
     .attr("y", (d, i) =>
-      lang === "en"
+      lang === "en" || lang === "ar"
         ? i % 2 === 0
           ? height / 2 - 20
           : height / 2 + 10
@@ -98,7 +101,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
       let line = [];
       let lineNumber = 0;
 
-      const lineHeight = lang === "en" ? 1 : 1.6; //em
+      const lineHeight = lang === "en" || lang === "ar" ? 1 : 1.6; //em
       const maxWidth = 100; // Adjust max width as needed
       let tspan = el
         .append("tspan")
@@ -189,7 +192,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .attr("x", widthV / 2 + 70)
     .attr("y", (d) => yScale(d.date))
     .attr("text-anchor", "middle")
-    .attr("dir", lang === "ur" ? "rtl" : "ltr")
+    .attr("dir", lang === "ur" || lang === "ar" ? "rtl" : "ltr")
     .each(function (d, i) {
       const el = d3.select(this);
       const words = d.event.split(" ");

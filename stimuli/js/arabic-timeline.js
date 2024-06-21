@@ -123,7 +123,7 @@ const arabicLocale = {
     return d3
       .axisBottom(xScale)
       .tickFormat((d) => {
-        const dateFormat = d3.timeFormat("%e %B \n %Y");
+        const dateFormat = d3.timeFormat("%e \n %B");
         const formattedDate = dateFormat(d);
         //const formattedTime = arabicTimeFormat(d);
         return `${formattedDate}\n`; //${formattedTime}`
@@ -152,7 +152,7 @@ const arabicLocale = {
     return d3
       .axisLeft(yScale)
       .tickFormat((d) => {
-        const dateFormat = d3.timeFormat("%Y ،%e %B");
+        const dateFormat = d3.timeFormat("%e %B");
         const formattedDate = dateFormat(d);
         //const formattedTime = arabicTimeFormat(d);
         return `${formattedDate}\n`; //${formattedTime}`
@@ -187,8 +187,8 @@ const arabicLocale = {
         const xScaleU = createXScale(
           d3.extent(data, (d) => d.date),
           orient === "RL"
-            ? [width - margin.right, margin.left]
-            : [margin.left, width - margin.right]
+            ? [width - margin.right - 380, margin.left]
+            : [margin.left, width - margin.right -380]
         );
         const xAxisU = createXAxis(xScaleU, data);
         renderVis(svgU, xScaleU, xAxisU, data, "ar");
