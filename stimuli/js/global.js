@@ -75,7 +75,7 @@ function renderVis(svg, xScale, xAxis, data, lang) {
     .attr("class", "event")
     .attr("cx", (d) => xScale(d.date))
     .attr("cy", (d, i) => (i % 2 === 0 ? height / 2 : height / 2 + 30)) // Adjust cy based on index
-    .attr("r", 3);
+    .attr("r", 2.25);
 
   // Add labels for each event
   eventGroup
@@ -140,7 +140,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
   svg
     .append("g")
     .attr("transform", `translate(${marginV.left}, ${padding})`)
-    .attr("class", lang === "ur" ? "urdu-content" : "arb") // also applies to English. Can be changed.
+    .attr("class", lang === "ur" ? "urdu-content" : "arb")
     .call(yAxis)
     .selectAll(".tick text")
     .each(function () {
@@ -148,7 +148,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
       const lines = el.text().split("\n");
       el.text("");
       for (let i = 0; i < lines.length; i++) {
-        el.append("tspan").attr("x", -10).attr("dy", "0.3em").text(lines[i]);
+        el.append("tspan").attr("x", (lang==="en" ? -10:15)).attr("dy", "0.3em").text(lines[i]);
       }
     });
   30;
@@ -164,8 +164,8 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .enter()
     .append("line")
     .attr("class", "event-line")
-    .attr("x1", marginV.left - 4)
-    .attr("x2", widthV / 2 + 45)
+    .attr("x1", (lang==="en" ? marginV.left - 4 : marginV.left))
+    .attr("x2", (lang==="en" ? widthV/2+45 : 50))
     .attr("y1", (d) => yScale(d.date))
     .attr("y2", (d) => yScale(d.date))
     .attr("stroke", "black")
@@ -178,9 +178,9 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .enter()
     .append("circle")
     .attr("class", "event")
-    .attr("cx", widthV / 2 + 45)
+    .attr("cx", (lang==="en" ? widthV/2+45 : 50))
     .attr("cy", (d) => yScale(d.date))
-    .attr("r", 3);
+    .attr("r", 2.25);
 
   // Add labels for each event
   eventGroup
@@ -203,7 +203,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
       const maxwidthV = lang === "ar" ? 150 : 100; // Adjust max width as needed
       let tspan = el
         .append("tspan")
-        .attr("x", widthV / 2 + 100)
+        .attr("x", (lang==="en" ? widthV/2 + 100 : 0))
         .attr("dy", "0em");
       words.forEach((word) => {
         line.push(word);
@@ -214,7 +214,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
           line = [word];
           tspan = el
             .append("tspan")
-            .attr("x", widthV / 2 + 100)
+            .attr("x", (lang==="en" ? widthV/2 + 100 : 0))
             .attr("dy", ++lineNumber * lineHeight + "em")
             .text(word);
         }

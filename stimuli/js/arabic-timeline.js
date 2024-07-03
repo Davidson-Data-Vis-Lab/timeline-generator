@@ -152,7 +152,7 @@ const arabicLocale = {
     return d3
       .axisLeft(yScale)
       .tickFormat((d) => {
-        const dateFormat = d3.timeFormat("%e %B");
+        const dateFormat = d3.timeFormat("%Y ،%e %B");
         const formattedDate = dateFormat(d);
         //const formattedTime = arabicTimeFormat(d);
         return `${formattedDate}\n`; //${formattedTime}`
