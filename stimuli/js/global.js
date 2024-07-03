@@ -165,7 +165,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .append("line")
     .attr("class", "event-line")
     .attr("x1", (lang==="en" ? marginV.left - 4 : marginV.left))
-    .attr("x2", (lang==="en" ? widthV/2+45 : 50))
+    .attr("x2", (lang==="en" ? widthV/2+45 : 60))
     .attr("y1", (d) => yScale(d.date))
     .attr("y2", (d) => yScale(d.date))
     .attr("stroke", "black")
@@ -178,7 +178,7 @@ function renderVisTB(svg, yScale, yAxis, data, lang) {
     .enter()
     .append("circle")
     .attr("class", "event")
-    .attr("cx", (lang==="en" ? widthV/2+45 : 50))
+    .attr("cx", (lang==="en" ? widthV/2+45 : 60))
     .attr("cy", (d) => yScale(d.date))
     .attr("r", 2.25);
 
