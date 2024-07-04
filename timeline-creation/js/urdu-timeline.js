@@ -115,7 +115,7 @@ function createXAxis(xScale, data) {
  * @param {string} dom_element the HTML element where the timeline should render
  * @param {string} title the title of the timeline
  */
-function callRenderUrdu(filename, dom_element, title) {
+function callRenderUrdu(filename, dom_element, title, flag=false) {
   d3.csv(filename).then((_data) => {
     data = _data; //local copy of data
 
@@ -128,8 +128,8 @@ function callRenderUrdu(filename, dom_element, title) {
 
     const svgU = createSVG(dom_element, title);
     const xScaleU = createXScale(
-      d3.extent(data, (d) => d.date),
-      [margin.left, width - margin.right]
+      d3.extent(data, (d) => d.date), 
+      (flag ? [width - margin.right, margin.left] : [margin.left, width - margin.right])
     );
     const xAxisU = createXAxis(xScaleU, data);
     renderVis(svgU, xScaleU, xAxisU, data, "ur");
@@ -138,4 +138,4 @@ function callRenderUrdu(filename, dom_element, title) {
 
 // urdu timelines rendered by calls below:
 callRenderUrdu("/timeline-creation/data/urdu.csv", "#timelineULR", "Urdu L-R");
-callRenderUrdu("/timeline-creation/data/urdu.csv", "#timelineURL", "Urdu R-L");
+callRenderUrdu("/timeline-creation/data/urdu.csv", "#timelineURL", "Urdu R-L", true);

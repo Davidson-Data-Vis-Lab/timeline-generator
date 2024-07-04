@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Timeline Generator</title>
+
+    <!-- Urdu Font  -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&display=swap"
+        rel="stylesheet">
+    <!-- CSS  -->
+    <link href=".././css/timeline.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- English Timelines  -->
+    <!-- Tweak width and margins in global.js for wider timelines -->
+
+
+    <!-- LEFT-RIGHT  -->
+    <div class="timeline" id="timeline-deveconomics-LR"></div>
+
+    <div class="timeline" id="timeline-education-LR"></div>
+
+    <!-- RIGHT-LEFT  -->
+    <div class="timeline" id="timeline-government-RL"></div>
+
+    <div class="timeline" id="timeline-sports-RL"></div>
+
+    <!-- TOP BOTTOM -->
+    <div class="timeline" id="timeline-university-TB"></div>
+
+    <div class="timeline" id="timeline-weather-TB"></div>
+
+    <!-- ENGLISH II -->
+
+    <!-- LEFT-RIGHT -->
+    <div class="timeline" id="timeline-community-LR"></div>
+    <div class="timeline" id="timeline-construction-LR"></div>
+
+    <!-- RIGHT-LEFT -->
+    <div class="timeline" id="timeline-disasters-RL"></div>
+    <div class="timeline" id="timeline-economics-RL"></div>
+
+    <!-- LEFT-RIGHT -->
+    <div class="timeline" id="timeline-neighborhood-TB"></div>
+    <div class="timeline" id="timeline-traffic-TB"></div>
+
+
+    <!-- D3 JS  -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Timeline Environments -->
+    <script src=".././js/global.js"></script>
+    <script src=".././js/english-timeline.js"></script>
+
+    <script>
+        // english timelines rendered by calls below:
+        callRenderEng(".././english/data/deveconomics.csv", "#timeline-deveconomics-LR", "English L-R", "LR");
+
+        callRenderEng(".././english/data/education.csv", "#timeline-education-LR", "English L-R", "LR");
+
+        callRenderEng(".././english/data/government.csv", "#timeline-government-RL", "English R-L", "RL");
+
+        callRenderEng(".././english/data/sports.csv", "#timeline-sports-RL", "English R-L", "RL");
+
+        callRenderEng(".././english/data/university.csv", "#timeline-university-TB", "English T-B", "TB");
+
+        callRenderEng(".././english/data/weather.csv", "#timeline-weather-TB", "English T-B", "TB");
+
+        //English 2:
+
+        callRenderEng(".././english/data/community.csv", "#timeline-community-LR", "English L-R", "LR");
+        callRenderEng(".././english/data/construction.csv", "#timeline-construction-LR", "English L-R", "LR");
+        callRenderEng(".././english/data/disasters.csv", "#timeline-disasters-RL", "English R-L", "RL");
+        callRenderEng(".././english/data/economics.csv", "#timeline-economics-RL", "English R-L", "RL");
+        callRenderEng(".././english/data/neighborhood.csv", "#timeline-neighborhood-TB", "English T-B", "TB");
+        callRenderEng(".././english/data/traffic.csv", "#timeline-traffic-TB", "English T-B", "TB");
+    </script>
+
+</body>
+
+</html>
