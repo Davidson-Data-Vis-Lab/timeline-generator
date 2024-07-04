@@ -1,0 +1,28 @@
+/* General styling */
+body {
+  font-size: small;
+}
+/* Timeline styling  */
+
+.timeline {
+  width: 100%;
+  /* border: 1px solid #ccc; */
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.event {
+  position: absolute;
+  border: 1px solid #000;
+  background-color: #f9f9f9;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+/* Urdu font styling  */
+.urdu-content {
+  font-family: "Noto Nastaliq Urdu", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
