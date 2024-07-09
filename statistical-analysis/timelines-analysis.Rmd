@@ -1,0 +1,400 @@
+---
+title: "Timelines Analysis"
+output: html_document
+date: "2024-07-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Timeline Analysis
+
+## General Setup
+
+Packages and ibraries to import, global variables, reading in data file.
+
+```{r message=FALSE, results='hide'}
+
+# import libraries
+library(readxl)
+library(dplyr)
+library(purrr)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(RColorBrewer)
+
+# Reading data from data file
+pilotDF <- read_excel("./data/pilot_analysis.xlsx")
+
+# Defining global variables
+MAX_SCORE <- 12
+SAMPLE_SIZE <- 7 #subject to change depending on number of survey responses
+```
+
+## Defining Functions/ Procedures
+
+### Summing Accuracies
+
+Sums up accuracy scores for provided language and orientation group (prefix) from dataset.
+
+Maximum possible score for any condition is 12. Calculates weighed accuracy (achieved score divided by 12) for provided prefix and for each participant.
+
+\*Weighed accuracy approach to account for negative marking of the questions (-1, -2, -5, -10).
+
+```{r}
+# Function to process accuracy data
+#RETURNS weighted accuracy
+acc_sum <- function(df, prefix) {
+  
+  # Select specific columns
+  selected_columns <- df %>%
+    select(matches(paste0("^", prefix, " - Q[1-6]$")))
+  
+  # Converting character vectors to numeric
+  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
+  
+  # List to store sums of each index across columns
+  sums <- numeric(length = length(data_numeric[[1]]))
+  
+  # Calculate and store sums of each index across columns
+  for (i in seq_along(data_numeric[[1]])) {
+    sums[i] <- sum(map_dbl(data_numeric, ~ .x[i]), na.rm=TRUE)
+  }
+  
+  # Weighted accuracy for each participant
+  weighted_accuracy <- sums / MAX_SCORE
+  
+  return(weighted_accuracy)
+}
+```
+
+### Summing Times
+
+Sums up time spent on questions in a provided language and orientation group (prefix) from dataset.
+
+Sums up time taken to complete the 12 questions in the given prefix for each participant.
+
+```{r}
+# Function to process time data
+time_sum <- function(df, prefix) {
+  
+  # select specific columns
+  selected_columns <- df %>%
+    select(matches(paste0("^", prefix, " - Q[1-6] Time_Page Submit$")))
+  
+  # converting character vectors to numeric
+  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
+  
+  # list to store sums of each index across columns
+  sums <- numeric(length = length(data_numeric[[1]]))
+  
+  # calculate and store sums of each index across columns
+  for (i in seq_along(data_numeric[[1]])) {
+    sums[[i]] <- sum(map_dbl(data_numeric, ~ .x[i]), na.rm=TRUE)
+  }
+  
+  return(sums)
+}
+```
+
+### Extra: Box Plots
+
+Optional function to see data distribution for provided prefix, for visualization purposes only.
+
+TODO: adjust y-scales for larger values. Plots are almost useless without that.
+
+```{r}
+box_plot <- function(bp_data){
+  # Plot weighted accuracy
+  ggboxplot(bp_data, x="metric", y="value",
+            color = "metric", palette=c("#00AFBB","#E7B800"),
+            ylab= "Value", xlab="Metric")
+  
+ #print(bp_data)
+}
+```
+
+### Extra: Bar Graph
+
+Optional function to see distribution of aggregated mean values for a language group.
+
+```{r}
+bar_plot <- function(data, title){
+  ggplot(data, aes(x = orientation, y = metric, fill = orientation)) + 
+    geom_bar(stat = "identity") + 
+    labs(title = title, x = "Orientation", y = "Mean Value") +
+    theme_minimal() + 
+    scale_fill_brewer(palette="Accent")
+}
+```
+
+***Q: What orientation does \<LANGUAGE\> do better with?***
+
+# English (Primary Language)
+
+Analysing performance who chose English as their primary (/ native/ first) language. Calculations and statistical testing to *figure out what orientation (TB, LR, or RL) is best for the English language*.
+
+```{r echo=FALSE}
+participant_ID <- rep(1:SAMPLE_SIZE, times=2)
+
+#TODO: shift to where global variables are defined above. 
+```
+
+### LEFT-RIGHT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Left-Right orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ELR3 and ELR4** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ELR34_acc <- acc_sum(pilotDF, "ELR[34]")
+#print("LR Accuracy Normality Check")
+shapiro.test(ELR34_acc)
+
+#Summing times
+ELR34_time <- time_sum(pilotDF, "ELR[34]")
+shapiro.test(ELR34_time)
+
+#creating df
+ELR34_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  value = c(ELR34_time,ELR34_acc)
+)
+
+# box blot distribution
+#box_plot(ELR34_df)
+```
+
+### RIGHT - LEFT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Right-Left orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ERL3 and ERL4** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ERL34_acc <- acc_sum(pilotDF, "ERL[34]")
+#print("RL Accuracy Normality Check")
+shapiro.test(ERL34_acc)
+
+#Summing times
+ERL34_time <- time_sum(pilotDF, "ERL[34]")
+#print("RL Time Normality Check")
+shapiro.test(ERL34_time)
+
+#creating df for plot
+ERL34_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  value = c(ERL34_time, ERL34_acc)
+)
+
+# box blot distribution
+#box_plot(ERL34_df)
+```
+
+### TOP - BOTTOM
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Top-Bottom orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ETB3 and ETB4** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ETB34_acc <- acc_sum(pilotDF, "ETB[34]")
+#print("TB Accuracy Normality Check")
+shapiro.test(ETB34_acc)
+
+#Summing times
+ETB34_time <- time_sum(pilotDF, "ETB[34]")
+#print("TB Time Normality Check")
+shapiro.test(ETB34_time)
+
+#creating df for plot
+ETB34_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  value = c(ETB34_time, ETB34_acc)
+)
+
+# box blot distribution
+#box_plot(ERL34_df)
+```
+
+#### Bar Plot(s) [extra]
+
+```{r echo=FALSE}
+
+mean_time_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ELR34_time, na.rm = TRUE), mean(ETB34_time, na.rm = TRUE), mean(ERL34_time, na.rm = TRUE))
+)
+
+mean_acc_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ELR34_acc, na.rm = TRUE), mean(ETB34_acc, na.rm = TRUE), mean(ERL34_acc, na.rm = TRUE))
+)
+
+bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - English; participants:", SAMPLE_SIZE))
+bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - English; participants:", SAMPLE_SIZE))
+```
+
+### Merging Data (LR, RL, TB)
+
+Merging data from all three orientations in to one data frame for statistical t-testing. A preview of how the frame looks like can be seen below.
+
+```{r echo=FALSE}
+# Merge the data frames
+df_ENG <- ELR34_df %>%
+  rename(value_LR = value) %>%
+  full_join(ERL34_df %>% rename(value_RL = value), by = c("p_id", "metric")) %>%
+  full_join(ETB34_df %>% rename(value_TB = value), by = c("p_id", "metric"))
+
+# display merged data frame
+head(df_ENG)
+
+```
+
+## Paired t-test (two-tailed) for ACCURACY
+
+***TODO: CORRECTION FOR MULTIPLE COMPARISONS ?.***
+
+Pairs:
+
+-   ELR vs. ERL
+
+-   ERL vs. ETB
+
+-   ETB vs. ELR
+
+**t-test: ELR vs. ERL accuracy**
+
+**Null Hyp. :** There is no significant difference in the accuracy scores between a LR orientation and a RL orientation.
+
+**Alternative Hyp. :** There is a significant difference in the accuracy scores between a LR orientation and a RL orientation.
+
+*Assumed significance level/ alpha: 0.05*
+
+```{r echo=FALSE}
+#t-test: ELR vs. ERL accuracy
+
+test_elr_erl_acc <- t.test(
+  df_ENG %>% filter(metric=="accuracy") %>% pull(value_LR),
+  df_ENG %>% filter(metric=="accuracy") %>% pull(value_RL),
+  paired = TRUE
+)
+
+print(test_elr_erl_acc)
+```
+
+**t-test: ETB vs. ELR accuracy**
+
+**Null Hyp. :** There is no significant difference in the accuracy scores between a LR orientation and a TB orientation.
+
+**Alternative Hyp. :** There is a significant difference in the accuracy scores between a LR orientation and a TB orientation.
+
+*Assumed significance level/ alpha: 0.05*
+
+```{r echo=FALSE}
+#t-test: ETB vs. ELR accuracy
+
+test_etb_elr_acc <- t.test(
+  df_ENG %>% filter(metric=="accuracy") %>% pull(value_LR),
+  df_ENG %>% filter(metric=="accuracy") %>% pull(value_TB),
+  paired = TRUE
+)
+
+print(test_etb_elr_acc)
+```
+
+**t-test: ERL vs. ETB accuracy**
+
+**Null Hyp. :** There is no significant difference in the accuracy scores between a TB orientation and a RL orientation.
+
+**Alternative Hyp. :** There is a significant difference in the accuracy scores between a TB orientation and a RL orientation.
+
+*Assumed significance level/ alpha: 0.05*
+
+```{r echo=FALSE}
+#t-test: ERL vs. ETB accuracy
+
+test_erl_etb_acc <- t.test(
+  df_ENG %>% filter(metric=="accuracy") %>% pull(value_RL),
+  df_ENG %>% filter(metric=="accuracy") %>% pull(value_TB),
+  paired = TRUE
+)
+
+print(test_erl_etb_acc)
+```
+
+## Paired t-test for TIME
+
+**t-test: ELR vs. ERL time**
+
+**Null Hyp. :** There is no significant difference in the time taken to complete tasks between a LR orientation and a RL orientation.
+
+**Alternative Hyp. :** There is a significant difference in the time taken to complete tasks between a LR orientation and a RL orientation.
+
+*Assumed significance level/ alpha: 0.05*
+
+```{r echo=FALSE}
+#t-test: ELR vs. ERL time
+
+test_elr_erl_time <- t.test(
+  df_ENG %>% filter(metric=="time") %>% pull(value_LR),
+  df_ENG %>% filter(metric=="time") %>% pull(value_RL),
+  paired = TRUE
+)
+
+print(test_elr_erl_time)
+```
+
+```{r}
+#means
+paste("LR Time Mean:",mean(ELR34_time, na.rm = TRUE))
+paste("RL Time Mean:",mean(ERL34_time, na.rm = TRUE))
+```
+
+**t-test: ETB vs. ELR time**
+
+**Null Hyp. :** There is no significant difference in the time taken to complete tasks between a TB orientation and a LR orientation.
+
+**Alternative Hyp. :** There is a significant difference in the time taken to complete tasks between a TB orientation and a LR orientation.
+
+*Assumed significance level/ alpha: 0.05*
+
+```{r echo=FALSE}
+#t-test: ETB vs. ELR time
+
+test_etb_elr_time <- t.test(
+  df_ENG %>% filter(metric=="time") %>% pull(value_LR),
+  df_ENG %>% filter(metric=="time") %>% pull(value_TB),
+  paired = TRUE
+)
+
+print(test_etb_elr_time)
+```
+
+**t-test: ERL vs. ETB time**
+
+**Null Hyp. :** There is no significant difference in the time taken to complete tasks between a TB orientation and a RL orientation.
+
+**Alternative Hyp. :** There is a significant difference in the time taken to complete tasks between a TB orientation and a RL orientation.
+
+*Assumed significance level/ alpha: 0.05*
+
+```{r echo=FALSE}
+#t-test: ERL vs. ETB time
+
+test_erl_etb_time <- t.test(
+  df_ENG %>% filter(metric=="time") %>% pull(value_RL),
+  df_ENG %>% filter(metric=="time") %>% pull(value_TB),
+  paired = TRUE
+)
+
+print(test_erl_etb_time)
+```
