@@ -111,21 +111,24 @@ function createXAxis(xScale, data) {
   // using the Urdu locale
   d3.timeFormatDefaultLocale(urduLocale);
 
-  // Custom URDU time format function for AM/PM display
-  //const urduTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
-
   return d3
     .axisBottom(xScale)
     .tickFormat((d) => {
       const dateFormat = d3.timeFormat("%e %B \n %Y");
       const formattedDate = dateFormat(d);
-      //const formattedTime = urduTimeFormat(d);
-      return `${formattedDate}\n`; //${formattedTime}`
+      return `${formattedDate}\n`;
     })
 
     .tickValues(data.map((d) => d.date));
 }
 
+/**
+ * Function to set up the y scale (time scale)
+ *
+ * @param {Array} domain the domain for the time scale; extent of dates
+ * @param {Array} range the range for the time scale; available width of the timeline
+ * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the y-scale to be used for the vis)
+ */
 function createYScale(domain, range) {
   return d3.scaleTime().domain(domain).range(range);
 }
@@ -140,16 +143,12 @@ function createYAxis(yScale, data) {
   // using the Urdu locale
   d3.timeFormatDefaultLocale(urduLocale);
 
-  // Custom URDU time format function for AM/PM display
-  //const urduTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
-
   return d3
     .axisRight(yScale)
     .tickFormat((d) => {
       const dateFormat = d3.timeFormat("%Y ،%e %B");
       const formattedDate = dateFormat(d);
-      //const formattedTime = urduTimeFormat(d);
-      return `${formattedDate}\n`; //${formattedTime}`
+      return `${formattedDate}\n`;
     })
 
     .tickValues(data.map((d) => d.date));

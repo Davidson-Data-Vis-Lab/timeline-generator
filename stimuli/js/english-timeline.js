@@ -12,6 +12,7 @@
  * @param {String} title the title for the timeline, ex. "English Left- Right"
  * @returns {d3.Selection}  an SVG element
  */
+
 function createSVG(containerId, title) {
   const svg = d3
     .select(containerId)

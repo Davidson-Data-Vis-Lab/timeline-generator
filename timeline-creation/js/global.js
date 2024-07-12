@@ -1,4 +1,7 @@
-/** This file contains global JS objects and functionality that are used by both timeline environments. */
+/**ile in /stimuli/js has recent updates and was used for the purposes of the study.
+ * Results of this file may differ. 
+ *  
+ * This file contains global JS objects and functionality that are used by both timeline environments. */
 
 // Parsing date strings into JavaScript Date objects
 const parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
