@@ -30,7 +30,26 @@ pilotDF <- read_excel("./data/pilot_analysis.xlsx")
 
 # Defining global variables
 MAX_SCORE <- 12
-SAMPLE_SIZE <- 7 #subject to change depending on number of survey responses
+
+#variables subject to change as we get more responses:
+
+#no. of total respondants
+SAMPLE_SIZE <- nrow(pilotDF) 
+
+#no. of responses that answer with English as primary lang
+eng_primary_size <- pilotDF %>%
+  filter(pilotDF$`CF EE` == "I AGREE") %>%
+  nrow() 
+
+#no. of responses that answer with Urdu as primary lang:
+urdu_primary_size <- pilotDF %>%
+  filter(pilotDF$`EU CF` == "I AGREE") %>%
+  nrow() 
+
+#no. of responses that answer with Arabic as primary lang
+arb_primary_size <- pilotDF %>%
+  filter(pilotDF$`EA CF` == "I AGREE") %>%
+  nrow() 
 ```
 
 ## Defining Functions/ Procedures
@@ -45,7 +64,7 @@ Maximum possible score for any condition is 12. Calculates weighed accuracy (ach
 
 ```{r}
 # Function to process accuracy data
-#RETURNS weighted accuracy
+# RETURNS weighted accuracy
 acc_sum <- function(df, prefix) {
   
   # Select specific columns
@@ -55,12 +74,18 @@ acc_sum <- function(df, prefix) {
   # Converting character vectors to numeric
   data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
   
+  # Combine the lists into a data frame to facilitate row-wise operations
+  data_numeric_df <- as.data.frame(data_numeric)
+  
+  # Filter out rows where all values are NA
+  data_filtered <- data_numeric_df[rowSums(is.na(data_numeric_df)) != ncol(data_numeric_df), ]
+  
   # List to store sums of each index across columns
-  sums <- numeric(length = length(data_numeric[[1]]))
+  sums <- numeric(nrow(data_filtered))
   
   # Calculate and store sums of each index across columns
-  for (i in seq_along(data_numeric[[1]])) {
-    sums[i] <- sum(map_dbl(data_numeric, ~ .x[i]), na.rm=TRUE)
+  for (i in seq_along(sums)) {
+    sums[i] <- sum(data_filtered[i, ], na.rm = TRUE)
   }
   
   # Weighted accuracy for each participant
@@ -80,19 +105,25 @@ Sums up time taken to complete the 12 questions in the given prefix for each par
 # Function to process time data
 time_sum <- function(df, prefix) {
   
-  # select specific columns
+  # Select specific columns
   selected_columns <- df %>%
     select(matches(paste0("^", prefix, " - Q[1-6] Time_Page Submit$")))
   
-  # converting character vectors to numeric
+  # Converting character vectors to numeric
   data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
   
-  # list to store sums of each index across columns
-  sums <- numeric(length = length(data_numeric[[1]]))
+  # Combine the lists into a data frame to facilitate row-wise operations
+  data_numeric_df <- as.data.frame(data_numeric)
   
-  # calculate and store sums of each index across columns
-  for (i in seq_along(data_numeric[[1]])) {
-    sums[[i]] <- sum(map_dbl(data_numeric, ~ .x[i]), na.rm=TRUE)
+  # Filter out rows where all values are NA
+  data_filtered <- data_numeric_df[rowSums(is.na(data_numeric_df)) != ncol(data_numeric_df), ]
+  
+  # List to store sums of each index across columns
+  sums <- numeric(nrow(data_filtered))
+  
+  # Calculate and store sums of each index across columns
+  for (i in seq_along(sums)) {
+    sums[i] <- sum(data_filtered[i, ], na.rm = TRUE)
   }
   
   return(sums)
@@ -134,10 +165,10 @@ bar_plot <- function(data, title){
 
 # English (Primary Language)
 
-Analysing performance who chose English as their primary (/ native/ first) language. Calculations and statistical testing to *figure out what orientation (TB, LR, or RL) is best for the English language*.
+Analyzing performance who chose English as their primary (/ native/ first) language. Calculations and statistical testing to *figure out what orientation (TB, LR, or RL) is best for the English language*.
 
 ```{r echo=FALSE}
-participant_ID <- rep(1:SAMPLE_SIZE, times=2)
+participant_ID <- rep(1:eng_primary_size, times=2)
 
 #TODO: shift to where global variables are defined above. 
 ```
@@ -161,7 +192,7 @@ shapiro.test(ELR34_time)
 #creating df
 ELR34_df <- data.frame(
   p_id = participant_ID,
-  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  metric = rep(c("time", "accuracy"), each=eng_primary_size),
   value = c(ELR34_time,ELR34_acc)
 )
 
@@ -189,7 +220,7 @@ shapiro.test(ERL34_time)
 #creating df for plot
 ERL34_df <- data.frame(
   p_id = participant_ID,
-  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  metric = rep(c("time", "accuracy"), each=eng_primary_size),
   value = c(ERL34_time, ERL34_acc)
 )
 
@@ -217,7 +248,7 @@ shapiro.test(ETB34_time)
 #creating df for plot
 ETB34_df <- data.frame(
   p_id = participant_ID,
-  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  metric = rep(c("time", "accuracy"), each=eng_primary_size),
   value = c(ETB34_time, ETB34_acc)
 )
 
@@ -239,8 +270,8 @@ mean_acc_data <- data.frame(
   metric = c(mean(ELR34_acc, na.rm = TRUE), mean(ETB34_acc, na.rm = TRUE), mean(ERL34_acc, na.rm = TRUE))
 )
 
-bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - English; participants:", SAMPLE_SIZE))
-bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - English; participants:", SAMPLE_SIZE))
+bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - English; participants:", eng_primary_size))
+bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - English; participants:", eng_primary_size))
 ```
 
 ### Merging Data (LR, RL, TB)
@@ -260,6 +291,8 @@ head(df_ENG)
 ```
 
 ## Paired t-test (two-tailed) for ACCURACY
+
+ASSUMING NORMALITY OF ALL DATA.
 
 ***TODO: CORRECTION FOR MULTIPLE COMPARISONS ?.***
 
@@ -333,6 +366,8 @@ print(test_erl_etb_acc)
 
 ## Paired t-test for TIME
 
+ASSUMING NORMALITY OF ALL DATA.
+
 **t-test: ELR vs. ERL time**
 
 **Null Hyp. :** There is no significant difference in the time taken to complete tasks between a LR orientation and a RL orientation.
@@ -398,3 +433,273 @@ test_erl_etb_time <- t.test(
 
 print(test_erl_etb_time)
 ```
+
+# Urdu
+
+Analyzing performance who chose Urdu as their primary (/ native/ first) language. Calculations and statistical testing to *figure out what orientation (TB, LR, or RL) is best for the Urdu language*.
+
+```{r echo=FALSE}
+participant_ID <- rep(1:urdu_primary_size, times=2)
+```
+
+### LEFT-RIGHT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the Urdu Left-Right orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ULR1 and ULR2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ULR12_acc <- acc_sum(pilotDF, "ULR[12]")
+#print("LR Accuracy Normality Check")
+shapiro.test(ULR12_acc)
+
+#Summing times
+ULR12_time <- time_sum(pilotDF, "ULR[12]")
+shapiro.test(ULR12_time)
+
+#creating df
+ULR12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=urdu_primary_size),
+  value = c(ULR12_time,ULR12_acc)
+)
+
+# box blot distribution
+#box_plot(ULR12_df)
+```
+
+### RIGHT - LEFT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the Urdu Right-Left orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **URL1 and URL2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+URL12_acc <- acc_sum(pilotDF, "URL[12]")
+#print("RL Accuracy Normality Check")
+shapiro.test(URL12_acc)
+
+#Summing times
+URL12_time <- time_sum(pilotDF, "URL[12]")
+#print("RL Time Normality Check")
+shapiro.test(URL12_time)
+
+#creating df for plot
+URL12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=urdu_primary_size),
+  value = c(URL12_time, URL12_acc)
+)
+
+# box blot distribution
+#box_plot(URL12_df)
+```
+
+### TOP - BOTTOM
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the Urdu Top-Bottom orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **UTB1 and UTB2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+UTB12_acc <- acc_sum(pilotDF, "UTB[12]")
+#print("TB Accuracy Normality Check")
+shapiro.test(UTB12_acc)
+
+#Summing times
+UTB12_time <- time_sum(pilotDF, "UTB[12]")
+#print("TB Time Normality Check")
+shapiro.test(UTB12_time)
+
+#creating df for plot
+UTB12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=urdu_primary_size),
+  value = c(UTB12_time, UTB12_acc)
+)
+
+# box blot distribution
+#box_plot(URL12_df)
+```
+
+#### Bar Plot(s) [extra]
+
+```{r echo=FALSE}
+
+mean_time_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ULR12_time, na.rm = TRUE), mean(UTB12_time, na.rm = TRUE), mean(URL12_time, na.rm = TRUE))
+)
+
+mean_acc_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ULR12_acc, na.rm = TRUE), mean(UTB12_acc, na.rm = TRUE), mean(URL12_acc, na.rm = TRUE))
+)
+
+bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - Urdu; participants:", urdu_primary_size))
+bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - Urdu; participants:", urdu_primary_size))
+```
+
+### Merging Data (LR, RL, TB)
+
+Merging data from all three orientations in to one data frame for statistical t-testing. A preview of how the frame looks like can be seen below.
+
+```{r echo=FALSE}
+# Merge the data frames
+df_URDU <- ULR12_df %>%
+  rename(value_LR = value) %>%
+  full_join(URL12_df %>% rename(value_RL = value), by = c("p_id", "metric")) %>%
+  full_join(UTB12_df %>% rename(value_TB = value), by = c("p_id", "metric"))
+
+# display merged data frame
+head(df_URDU)
+
+```
+
+# Arabic
+
+Analyzing performance who chose Arabic as their primary (/ native/ first) language. Calculations and statistical testing to *figure out what orientation (TB, LR, or RL) is best for the Arabic language*.
+
+```{r echo=FALSE}
+participant_ID <- rep(1:arb_primary_size, times=2)
+```
+
+### LEFT-RIGHT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the Arabic Left-Right orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ALR1 and ALR2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ALR12_acc <- acc_sum(pilotDF, "ALR[12]")
+#summary(ALR12_acc)
+#print("LR Accuracy Normality Check")
+shapiro.test(ALR12_acc)
+
+#Summing times
+ALR12_time <- time_sum(pilotDF, "ALR[12]")
+shapiro.test(ALR12_time)
+
+#creating df
+ALR12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=arb_primary_size),
+  value = c(ALR12_time,ALR12_acc)
+)
+
+# box blot distribution
+#box_plot(ALR12_df)
+```
+
+### RIGHT - LEFT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the Arabic Right-Left orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ARL1 and ARL2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ARL12_acc <- acc_sum(pilotDF, "ARL[12]")
+#print("RL Accuracy Normality Check")
+shapiro.test(ARL12_acc)
+
+#Summing times
+ARL12_time <- time_sum(pilotDF, "ARL[12]")
+#print("RL Time Normality Check")
+shapiro.test(ARL12_time)
+
+#creating df for plot
+ARL12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=arb_primary_size),
+  value = c(ARL12_time, ARL12_acc)
+)
+
+# box blot distribution
+#box_plot(ARL12_df)
+```
+
+### TOP - BOTTOM
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the Arabic Top-Bottom orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ATB1 and ATB2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ATB12_acc <- acc_sum(pilotDF, "ATB[12]")
+#print("TB Accuracy Normality Check")
+shapiro.test(ATB12_acc)
+
+#Summing times
+ATB12_time <- time_sum(pilotDF, "ATB[12]")
+#print("TB Time Normality Check")
+shapiro.test(ATB12_time)
+
+#creating df for plot
+ATB12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=arb_primary_size),
+  value = c(ATB12_time, ATB12_acc)
+)
+
+# box blot distribution
+#box_plot(ARL12_df)
+```
+
+#### Bar Plot(s) [extra]
+
+```{r echo=FALSE}
+
+mean_time_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ALR12_time, na.rm = TRUE), mean(ATB12_time, na.rm = TRUE), mean(ARL12_time, na.rm = TRUE))
+)
+
+mean_acc_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ALR12_acc, na.rm = TRUE), mean(ATB12_acc, na.rm = TRUE), mean(ARL12_acc, na.rm = TRUE))
+)
+
+bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - Arabic; participants:", arb_primary_size))
+bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - Arabic; participants:", arb_primary_size))
+```
+
+### Merging Data (LR, RL, TB)
+
+Merging data from all three orientations in to one data frame for statistical t-testing. A preview of how the frame looks like can be seen below.
+
+```{r echo=FALSE}
+# Merge the data frames
+df_ARABIC <- ALR12_df %>%
+  rename(value_LR = value) %>%
+  full_join(ARL12_df %>% rename(value_RL = value), by = c("p_id", "metric")) %>%
+  full_join(ATB12_df %>% rename(value_TB = value), by = c("p_id", "metric"))
+
+# display merged data frame
+head(df_ARABIC)
+```
+
+# Unpaired t-tests - TIME
+
+ASSUMING NORMALITY OF ALL DATA.
+
+**ASSUMES EQUAL VARIANCE - FTEST NEEDED.**
+
+F-TEST also assumes normality.
+
+***What \<LANG\> is best for \<ORIENTATION\> (LR, RL, TB)?***
+
+Pairs:
+
+-   For all 3 orientations: (9 tests)
+
+    -   Urdu vs Eng
+
+    -   Eng vs Arb
+
+    -   Arb vs. Urdu

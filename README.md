@@ -5,14 +5,14 @@ Historically, timelines are written left to right, although alternative layouts 
 
 Example timelines produced using code in this repository include: 
 
-![A left-right English timeline illustrating fictitious government events.](img/engex.png)
-*A left-right English timeline illustrating fictitious government events.*
+![A right left English timeline illustrating fictitious government events.](img/engex.png)
+*A right-left English timeline illustrating fictitious government events.*
 
-![A right-left Urdu timeline illustrating fictitious economic events.](img/urduex.png)
+![A right left Urdu timeline illustrating fictitious economic events.](img/urduex.png)
 *A right-left Urdu timeline illustrating fictitious economic events.*
 
-![A right-left Arabic timeline illustrating fictitious natural disaster events.](img/arbex.png)
-*A right-left Arabic timeline illustrating fictitious natural disaster events.*
+![A left right Arabic timeline illustrating fictitious construction events.](img/arbex2.png)
+*A left-right Arabic timeline illustrating fictitious construction events.*
 
 ## Requirements
 - D3.js
