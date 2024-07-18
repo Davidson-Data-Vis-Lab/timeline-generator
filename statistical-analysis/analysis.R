@@ -1,89 +1,116 @@
-# import libraries
-library(readxl)
-library(dplyr)
-library(purrr)
-library(tidyverse)
+### LEFT-RIGHT
 
-# Function to process accuracy data
-acc_sum <- function(df, prefix) {
-  
-  # select specific columns
-  selected_columns <- df %>%
-    select(matches(paste0("^", prefix, " - Q[1-6]$")))
-  
-  # converting character vectors to numeric
-  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
-  
-  # list to store sums of each index across columns
-  sums <- vector("list", length = length(data_numeric[[1]]))
-  
-  # calculate and store sums of each index across columns
-  for (i in seq_along(data_numeric[[1]])) {
-    sums[[i]] <- sum(map_dbl(data_numeric, ~ .x[i]), na.rm=TRUE)
-  }
-  
-  return(sums)
-}
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Left-Right orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
 
-# Function to process time data
-time_sum <- function(df, prefix) {
-  
-  # select specific columns
-  selected_columns <- df %>%
-    select(matches(paste0("^", prefix, " - Q[1-6] Time_Page Submit$")))
-  
-  # converting character vectors to numeric
-  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
-  
-  # list to store sums of each index across columns
-  sums <- vector("list", length = length(data_numeric[[1]]))
-  
-  # calculate and store sums of each index across columns
-  for (i in seq_along(data_numeric[[1]])) {
-    sums[[i]] <- sum(map_dbl(data_numeric, ~ .x[i]), na.rm=TRUE)
-  }
-  
-  return(sums)
-}
+\*Uses columns **ELR1 and ELR2** in dataset for this purpose.
 
-#MAIN:
+```{r}
+#Calculating weighted accuracy
+ELR12_acc <- acc_sum(pilotDF, "ELR[12]")
+#print("LR Accuracy Normality Check")
+shapiro.test(ELR12_acc)
 
-# Read data from data file
-pilotDF <- read_excel("./data/pilot_analysis.xlsx")
+#Summing times
+ELR12_time <- time_sum(pilotDF, "ELR[12]")
+shapiro.test(ELR12_time)
 
+#creating df
+ELR12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=eng_primary_size),
+  value = c(ELR12_time,ELR12_acc)
+)
 
-# Process data
-ELR12_sums <- acc_sum(pilotDF, "ELR[12]")
+# box blot distribution
+#box_plot(ELR12_df)
+```
 
-#ELR34_sums <- acc_sum(pilotDF, "ELR[34]")
+### RIGHT - LEFT
 
-ULR12_sums <- acc_sum(pilotDF, "ULR[12]")
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Right-Left orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
 
+\*Uses columns **ERL1 and ERL2** in dataset for this purpose.
 
-# Print the sums for the third participant (index 3) (Test Case)
-print(ELR12_sums[[3]])
-print(ULR12_sums[[3]])
+```{r}
+#Calculating weighted accuracy
+ERL12_acc <- acc_sum(pilotDF, "ERL[12]")
+#print("RL Accuracy Normality Check")
+shapiro.test(ERL12_acc)
 
+#Summing times
+ERL12_time <- time_sum(pilotDF, "ERL[12]")
+#print("RL Time Normality Check")
+shapiro.test(ERL12_time)
 
-max_score <- 12
+#creating df for plot
+ERL12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=eng_primary_size),
+  value = c(ERL12_time, ERL12_acc)
+)
 
-weight_acc <- function(sums, plot_title){
-  #weighted accuracy for each participant
-  weighted_accuracy <- unlist(sums) / max_score
-  
-  #data frame for plotting
-  data <- data.frame(
-    name = paste0("Participant ", 1:length(weighted_accuracy)),
-    weighted_accuracy = weighted_accuracy
-  )
-  
-  # Plot weighted accuracy
-  ggplot(data, aes(x = name, y = weighted_accuracy)) + 
-    geom_bar(stat = "identity") +
-    labs(x = "Participant", y = "Weighted Accuracy", title = paste("Weighted Accuracy per Participant ", plot_title)
-    ) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-}
+# box blot distribution
+#box_plot(ERL12_df)
+```
 
-weight_acc(ULR12_sums, "ULR12")
+### TOP - BOTTOM
 
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Top-Bottom orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ETB1 and ETB2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ETB12_acc <- acc_sum(pilotDF, "ETB[12]")
+#print("TB Accuracy Normality Check")
+shapiro.test(ETB12_acc)
+
+#Summing times
+ETB12_time <- time_sum(pilotDF, "ETB[12]")
+#print("TB Time Normality Check")
+shapiro.test(ETB12_time)
+
+#creating df for plot
+ETB12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=eng_primary_size),
+  value = c(ETB12_time, ETB12_acc)
+)
+
+# box blot distribution
+#box_plot(ERL12_df)
+```
+
+#### Bar Plot(s) [extra]
+
+```{r echo=FALSE}
+
+mean_time_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ELR12_time, na.rm = TRUE), mean(ETB12_time, na.rm = TRUE), mean(ERL12_time, na.rm = TRUE))
+)
+
+mean_acc_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ELR12_acc, na.rm = TRUE), mean(ETB12_acc, na.rm = TRUE), mean(ERL12_acc, na.rm = TRUE))
+)
+
+bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - English; participants:", eng_primary_size))
+bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - English; participants:", eng_primary_size))
+```
+
+### Merging Data (LR, RL, TB)
+
+Merging data from all three orientations in to one data frame for statistical t-testing. A preview of how the frame looks like can be seen below.
+
+```{r echo=FALSE}
+# Merge the data frames
+df_ENG_ALL <- ELR12_df %>%
+  rename(value_LR = value) %>%
+  full_join(ERL12_df %>% rename(value_RL = value), by = c("p_id", "metric")) %>%
+  full_join(ETB12_df %>% rename(value_TB = value), by = c("p_id", "metric"))
+
+# display merged data frame
+head(df_ENG_ALL)
+
+```

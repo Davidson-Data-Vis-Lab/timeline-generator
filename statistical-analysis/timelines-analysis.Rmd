@@ -21,6 +21,7 @@ library(readxl)
 library(dplyr)
 library(purrr)
 library(tidyverse)
+library(skimr)
 library(ggplot2)
 library(ggpubr)
 library(RColorBrewer)
@@ -28,8 +29,13 @@ library(RColorBrewer)
 # Reading data from data file
 pilotDF <- read_excel("./data/pilot_analysis.xlsx")
 
+#cleaning data (exclude unfinished responses)
+pilotDF <- pilotDF %>%
+  filter(pilotDF$Finished != "False")
+
 # Defining global variables
 MAX_SCORE <- 12
+SCORE_VALUE <- 1
 
 #variables subject to change as we get more responses:
 
@@ -161,6 +167,317 @@ bar_plot <- function(data, title){
 }
 ```
 
+## Further Analysis: Time Spent on Questions
+
+**How much time was spent on all (144) questions by each participant?**
+
+data frame size: (72 \* SAMPLE_SIZE data items)
+
+```{r echo=FALSE}
+#generate DF with all question times for each participant
+
+all_times <- function(df){
+  
+  participant_ID <- rep(1:SAMPLE_SIZE)
+  
+    # Select specific columns
+  selected_columns <- df %>%
+    select(matches(paste0("Q[1-6] Time_Page Submit$")))
+  
+    
+  # Converting character vectors to numeric
+  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
+  
+# Combine participant_ID and data_numeric using data.frame()
+  res_df <- data.frame(participant_ID = participant_ID, data_numeric)
+  
+  return(res_df)
+  
+}
+```
+
+```{r echo=FALSE}
+#box plot for each question to observe time distribution; EXTRA
+
+plot_question_boxplot <- function(df, question_prefix, question_number) {
+  # Construct the full question column name
+  question_name <- paste0(question_prefix, question_number, ".Time_Page.Submit")
+  
+  # Select the participant_ID and the specific question column
+  selected_columns <- df %>%
+    select(participant_ID, all_of(question_name))
+  
+  # Rename the selected question column to "time" for easier plotting
+  colnames(selected_columns)[2] <- "time"
+  
+  # Convert to long format (though it's already in the correct format)
+  result_long <- selected_columns %>%
+    pivot_longer(
+      cols = -participant_ID,
+      names_to = "question",
+      values_to = "time"
+    )
+  
+  # Create the box and whisker plot
+  p <- ggplot(result_long, aes(x = question, y = time)) +
+    geom_boxplot() +
+    labs(title = paste("Time Spent on ", question_prefix, question_number),
+         x = "Question",
+         y = "Time (seconds)") +
+    theme_minimal()
+  
+  print(p)
+}
+```
+
+Summary of Time Spent on Each Question
+
+*See* `quest_times_summary.csv` *for full details.*
+
+```{r}
+#summary(all_times_df)
+all_times_df <- all_times(pilotDF)
+times_summary <- skim(all_times_df)
+write.csv(times_summary, file = "ques_times_summary.csv")
+
+head(times_summary)
+#summary(all_times_df$ELR1...Q2.Time_Page.Submit)
+```
+
+## Further Analysis: Question Accuracy Rate
+
+**How many times was \<question\> answered correctly?**
+
+```{r echo=FALSE}
+all_accuracy <- function(df){
+  
+   #quest_ID <- rep(1:SAMPLE_SIZE)
+  
+    # Select specific columns
+  selected_columns <- df %>%
+    select(matches(paste0("Q[1-6]$")))
+  
+    
+  # Converting character vectors to numeric
+  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
+  
+# Combine participant_ID and data_numeric using data.frame()
+  res_df <- data.frame(data_numeric)
+  
+  return(res_df)
+}
+```
+
+```{r echo=FALSE}
+#function to count score achieved on each question, return as df
+
+score_counts <- function(df){
+
+  hits <- t(df %>% 
+    summarise(across(everything(), ~ sum(. == SCORE_VALUE, na.rm = TRUE))))
+  
+  neg_1 <- t(df %>% 
+    summarise(across(everything(), ~ sum(. == "-1", na.rm = TRUE))))
+  
+  neg_2 <- t(df %>% 
+    summarise(across(everything(), ~ sum(. == "-2", na.rm = TRUE))))
+  
+  neg_5 <- t(df %>% 
+    summarise(across(everything(), ~ sum(. == "-5", na.rm = TRUE))))
+  
+  neg_10 <- t(df %>% 
+    summarise(across(everything(), ~ sum(. == "-10", na.rm = TRUE))))
+  
+  return(list(hits = hits, neg_1 = neg_1, neg_2 = neg_2, neg_5 = neg_5, neg_10 = neg_10))
+}
+```
+
+**Summary of Accuracy of Each Question**
+
+See `ques_accuracy_summary.csv` for full details.
+
+```{r echo=FALSE}
+all_accuracies_df <- all_accuracy(pilotDF)
+
+counts <- score_counts(all_accuracies_df)
+
+acc_rates <- counts$hits[1:36,] / SAMPLE_SIZE
+acc_rates <- append(acc_rates,counts$hits[37:72,]/arb_primary_size)
+acc_rates <- append(acc_rates,counts$hits[73:108,]/urdu_primary_size)
+acc_rates <- append(acc_rates,counts$hits[109:144,]/eng_primary_size)
+pool_sizes <-c(rep(SAMPLE_SIZE, 36), rep(arb_primary_size,36), rep(urdu_primary_size, 36), rep(eng_primary_size,36))
+
+accuracy_summary <- data.frame(
+  count = counts$hits,
+  rate = acc_rates,
+  pool_size = pool_sizes,
+  neg_1 = counts$neg_1,
+  neg_2 = counts$neg_2,
+  neg_5 = counts$neg_5,
+  neg_10 = counts$neg_10
+)
+
+#save to csv
+write.csv(accuracy_summary, file="ques_accuracy_summary.csv")
+head(accuracy_summary)
+```
+
+**Performance Breakdown of universal English questions answered by Urdu speakers**
+
+see `urdu_eng_accuracy_summary.csv` for full details
+
+```{r echo=FALSE}
+
+# Filter rows where urdu column is not NA
+urdu_eng_df <- all_accuracies_df %>%
+  filter(!is.na(all_accuracies_df$ULR1...Q1)) %>%
+  select(c(1:36,73:108))  # Select only column X
+
+# score counts
+counts <- score_counts(urdu_eng_df)
+
+acc_rates <- counts$hits[1:36,] / urdu_primary_size
+acc_rates <- append(acc_rates,counts$hits[37:72,]/urdu_primary_size)
+
+# Display the resulting subset data frame
+urdu_eng_accuracy_summary <- data.frame(
+  count = counts$hits,
+  rate = acc_rates,
+  pool_size = urdu_primary_size,
+  neg_1 = counts$neg_1,
+  neg_2 = counts$neg_2,
+  neg_5 = counts$neg_5,
+  neg_10 = counts$neg_10
+)
+
+#save to csv
+write.csv(urdu_eng_accuracy_summary, file="urdu_eng_accuracy_summary.csv")
+head(urdu_eng_accuracy_summary)
+```
+
+## English (Secondary Language/ Universal)
+
+```{r echo=FALSE}
+participant_ID <- rep(1:SAMPLE_SIZE, times=2)
+```
+
+### LEFT-RIGHT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Left-Right orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ELR1 and ELR2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ELR12_acc <- acc_sum(pilotDF, "ELR[12]")
+#print("LR Accuracy Normality Check")
+shapiro.test(ELR12_acc)
+
+#Summing times
+ELR12_time <- time_sum(pilotDF, "ELR[12]")
+shapiro.test(ELR12_time)
+
+#creating df
+ELR12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  value = c(ELR12_time,ELR12_acc)
+)
+
+# box blot distribution
+#box_plot(ELR12_df)
+```
+
+### RIGHT - LEFT
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Right-Left orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ERL1 and ERL2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ERL12_acc <- acc_sum(pilotDF, "ERL[12]")
+#print("RL Accuracy Normality Check")
+shapiro.test(ERL12_acc)
+
+#Summing times
+ERL12_time <- time_sum(pilotDF, "ERL[12]")
+#print("RL Time Normality Check")
+shapiro.test(ERL12_time)
+
+#creating df for plot
+ERL12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  value = c(ERL12_time, ERL12_acc)
+)
+
+# box blot distribution
+#box_plot(ERL12_df)
+```
+
+### TOP - BOTTOM
+
+Uses functions defined above to aggregate data - time and accuracy sums - for the English Top-Bottom orientation. Implements the **Shapiro Wilk test** to determine if data is normally distributed, assuming alpha = 0.05.
+
+\*Uses columns **ETB1 and ETB2** in dataset for this purpose.
+
+```{r}
+#Calculating weighted accuracy
+ETB12_acc <- acc_sum(pilotDF, "ETB[12]")
+#print("TB Accuracy Normality Check")
+shapiro.test(ETB12_acc)
+
+#Summing times
+ETB12_time <- time_sum(pilotDF, "ETB[12]")
+#print("TB Time Normality Check")
+shapiro.test(ETB12_time)
+
+#creating df for plot
+ETB12_df <- data.frame(
+  p_id = participant_ID,
+  metric = rep(c("time", "accuracy"), each=SAMPLE_SIZE),
+  value = c(ETB12_time, ETB12_acc)
+)
+
+# box blot distribution
+#box_plot(ERL12_df)
+```
+
+#### Bar Plot(s) [extra]
+
+```{r echo=FALSE}
+
+mean_time_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ELR12_time, na.rm = TRUE), mean(ETB12_time, na.rm = TRUE), mean(ERL12_time, na.rm = TRUE))
+)
+
+mean_acc_data <- data.frame(
+  orientation=c("LR","TB","RL"),
+  metric = c(mean(ELR12_acc, na.rm = TRUE), mean(ETB12_acc, na.rm = TRUE), mean(ERL12_acc, na.rm = TRUE))
+)
+
+bar_plot(mean_time_data,paste("Mean of Time Spent (in seconds) - English; participants:", SAMPLE_SIZE))
+bar_plot(mean_acc_data, paste("Mean of Scored Accuracy - English; participants:", SAMPLE_SIZE))
+```
+
+### Merging Data (LR, RL, TB)
+
+Merging data from all three orientations in to one data frame for statistical t-testing. A preview of how the frame looks like can be seen below.
+
+```{r echo=FALSE}
+# Merge the data frames
+df_ENG_ALL <- ELR12_df %>%
+  rename(value_LR = value) %>%
+  full_join(ERL12_df %>% rename(value_RL = value), by = c("p_id", "metric")) %>%
+  full_join(ETB12_df %>% rename(value_TB = value), by = c("p_id", "metric"))
+
+# display merged data frame
+head(df_ENG_ALL)
+
+```
+
 ***Q: What orientation does \<LANGUAGE\> do better with?***
 
 # English (Primary Language)
@@ -169,8 +486,6 @@ Analyzing performance who chose English as their primary (/ native/ first) langu
 
 ```{r echo=FALSE}
 participant_ID <- rep(1:eng_primary_size, times=2)
-
-#TODO: shift to where global variables are defined above. 
 ```
 
 ### LEFT-RIGHT
