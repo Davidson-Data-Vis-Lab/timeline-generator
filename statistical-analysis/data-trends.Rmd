@@ -1,0 +1,683 @@
+---
+title: "data-distribution-observations"
+output: html_document
+date: "2024-07-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Observing Data Trends
+
+This file includes code to study the cumulative data, such as time and score distributions across all participants and subsets. It includes histograms for question types, box and whisker plots to analyse performance across universal and primary language questions, and to study any correlation effects in the responses.
+
+\*does not include the testing to see if responses are by chance or not. That can be found in `timeline-analysis.Rmd`.
+
+```{r echo=FALSE, message=FALSE, results='hide'}
+#TODO: Eliminate reundandant packages. 
+# (YFA: i added these as i needed. It may be the case that packages are repeated, eg. tidyverse has ggplot2 and dplyr.) 
+
+# import libraries
+library(readxl)
+library(dplyr)
+library(purrr)
+library(tidyverse)
+library(skimr)
+library(ggplot2)
+library(ggpubr)
+library(RColorBrewer)
+library(gridExtra) #fyi: masked from dplyr, to specify function paths #TODO
+library(grid)
+
+
+#to save plots as SVGs:
+#install.packages("svglite")
+library(svglite)
+```
+
+**Importing data file:**
+
+1.  Rename data file with ALL responses data across all 3 groups (EE, EU, EA) as "analysis_data"
+2.  Open the data file in Excel and
+    1.  remove the second row that contains question text. This is not needed.
+    2.  ensure all responses are from 7th July 2024 and onward. Any responses collected before are pilot runs and not true responses.
+    3.  Rename the TB question columns to not have the "#1_1" character in them. I am not sure why but this is how Qualtrics exports data for the side by side question type.
+        1.  `Find "#1_1"` (find all) and then `Replace with ""` (replace all).
+
+```{r echo=FALSE}
+
+# Reading data from data file
+pilotDF <- read_excel("./data/analysis_data.xlsx")
+
+#cleaning data (exclude unfinished responses)
+pilotDF <- pilotDF %>%
+  filter(pilotDF$Finished != "False")
+
+# Defining global variables
+MAX_SCORE <- 12
+SCORE_VALUE <- 1
+
+#variables subject to change as we get more responses:
+
+#no. of total respondants
+SAMPLE_SIZE <- nrow(pilotDF) 
+
+#no. of responses that answer with English as primary lang
+eng_primary_size <- pilotDF %>%
+  filter(pilotDF$`CF EE` == "I AGREE") %>%
+  nrow() 
+
+#no. of responses that answer with Urdu as primary lang:
+urdu_primary_size <- pilotDF %>%
+  filter(pilotDF$`EU CF` == "I AGREE") %>%
+  nrow() 
+
+#no. of responses that answer with Arabic as primary lang
+arb_primary_size <- pilotDF %>%
+  filter(pilotDF$`EA CF` == "I AGREE") %>%
+  nrow() 
+```
+
+```{r echo=FALSE}
+paste0("Total Sample Size: ", SAMPLE_SIZE)
+paste0("English(primary) pool size: ", eng_primary_size)
+paste0("Urdu pool size: ", urdu_primary_size)
+paste0("Arabic pool size: ", arb_primary_size)
+```
+
+## Data Analysis By Time
+
+**How much time was spent on all (72) questions by each participant?**
+
+There are 36 universal English questions, 36 in Urdu, 36 in Arabic and 36 in English. Each participant only sees 36 universal + 36 primary language (E, A or U) questions for a total of 72 questions per participant.
+
+Data frame size: (72 \* SAMPLE_SIZE data items)
+
+```{r echo=FALSE}
+#generate DF with all question times for each participant
+all_times <- function(df) {
+
+  # Select specific columns
+  selected_columns <- df %>%
+    select(matches("Q[1-6] Time_Page Submit$"), all_of("SC0"))
+  
+  # Calculate the median and mean for each participant (row-wise)
+  median_times <- apply(selected_columns, 1, function(row) {
+    numeric_row <- as.numeric(row)
+    median(numeric_row, na.rm = TRUE)
+  })
+  
+  mean_times <- apply(selected_columns, 1, function(row) {
+    numeric_row <- as.numeric(row)
+    mean(numeric_row, na.rm = TRUE)
+  })
+  
+  # Create a data frame with the original data and calculated medians and means
+  res_df <- data.frame(participant_ID = 1:SAMPLE_SIZE, selected_columns, 
+                       Median = median_times, Mean = mean_times)
+  
+  return(res_df)
+}
+
+time_hist <- function (df, to_include,qType) {
+  #filtering wanted (to_include) data from df
+  filtered_data <- df %>%
+    select(matches(to_include)) %>%  
+    pivot_longer(cols = everything(), names_to = "variable", values_to = "value") %>%
+    filter(!is.na(value) & value <= LIMIT)
+  
+  ggplot(filtered_data, 
+  aes(x=value)) +
+   geom_histogram(binwidth = 1) +
+  labs(title = paste0("Distribution of Question Type: ", qType),
+       subtitle = paste("Total values plotted: ", nrow(filtered_data)),
+       x = "Value",
+       y = "Frequency")
+}
+
+#EXTRA
+#box plot for each question to observe time distribution; EXTRA
+plot_question_boxplot <- function(df, question_prefix, question_number) {
+  # Construct the full question column name
+  question_name <- paste0(question_prefix, question_number, ".Time_Page.Submit")
+  
+  # Select the participant_ID and the specific question column
+  selected_columns <- df %>%
+    select(participant_ID, all_of(question_name))
+  
+  # Rename the selected question column to "time" for easier plotting
+  colnames(selected_columns)[2] <- "time"
+  
+  # Convert to long format (though it's already in the correct format)
+  result_long <- selected_columns %>%
+    pivot_longer(
+      cols = -participant_ID,
+      names_to = "question",
+      values_to = "time"
+    )
+  
+  # Create the box and whisker plot
+  p <- ggplot(result_long, aes(x = question, y = time)) +
+    geom_boxplot() +
+    labs(title = paste("Time Spent on ", question_prefix, question_number),
+         x = "Question",
+         y = "Time (seconds)") +
+    theme_minimal()
+  
+  print(p)
+}
+```
+
+**Summary of Time Spent on Each Question**
+
+*See* `quest_times_summary.csv` *for full details.*
+
+```{r}
+#summary(all_times_df)
+all_times_df <- all_times(pilotDF)
+times_summary <- skim(all_times_df)
+write.csv(times_summary, file = "ques_times_summary.csv")
+
+head(times_summary)
+#summary(all_times_df$ELR1...Q2.Time_Page.Submit)
+```
+
+**Histogram for time dist. for all questions**
+
+FYI: dataset is **missing 21 times** for URL1 Q1 due to survey error (now fixed)
+
+```{r}
+#cut off value for histograms.
+LIMIT <- 300 #min:300 , max:2750 (subject to change with more responses)
+
+#bin widths are set to 1 in code.
+```
+
+```{r echo=FALSE}
+# Reshape the data frame into a long format, excluding id and score cols
+filtered_data <- all_times_df %>%
+  pivot_longer(cols = 2:145, names_to = "variable", values_to = "value") %>%
+  filter(!is.na(value) & value <= LIMIT)
+
+# Create the histogram
+ggplot(filtered_data, aes(x = value)) +
+  geom_histogram(binwidth = 1) +  # Adjust binwidth as needed
+  labs(title = "Distribution of All Times",
+       subtitle = paste("Total values plotted:", nrow(filtered_data)),
+       x = "Value",
+       y = "Frequency")
+```
+
+**Histograms for each of the 6 type of questions (6 histograms for 6 question types)**
+
+Q1: When did \<event\> happen?
+
+```{r echo=FALSE}
+#missing 21 values for question type 1
+time_hist(all_times_df, "Q1.Time_Page.Submit", 1 )
+```
+
+Q2: What happened at \<date\>?
+
+```{r echo=FALSE}
+time_hist(all_times_df, "Q2.Time_Page.Submit", 2 )
+```
+
+Q3: How much time has passed between \<event A\> and \<event B\>?
+
+```{r echo=FALSE}
+time_hist(all_times_df, "Q3.Time_Page.Submit", 3 )
+```
+
+```{r}
+#statistical summary of question type 3:
+#skim(all_times_df %>%
+  #select(matches("Q3.Time_Page.Submit")) %>%
+  #pivot_longer(cols = everything(), names_to = "variable", values_to = "value"))
+```
+
+Q4: Does \<event A\> happen before or after \<event B\>?
+
+```{r echo=FALSE}
+time_hist(all_times_df, "Q4.Time_Page.Submit", 4 )
+```
+
+Q5: Is \<event B\> closer in time to \<event A\> or \<event C\>?
+
+```{r echo=FALSE}
+time_hist(all_times_df, "Q5.Time_Page.Submit", 5 )
+```
+
+```{r}
+#statistical summary of question type 5:
+#skim(all_times_df %>%
+  #select(matches("Q5.Time_Page.Submit")) %>%
+  #pivot_longer(cols = everything(), names_to = "variable", values_to = "value"))
+```
+
+Q6: What two events happened before/ after \<event\>?
+
+```{r echo=FALSE}
+time_hist(all_times_df, "Q6.Time_Page.Submit", 6 )
+```
+
+**Response Breakdown** for responses with low response times and low accuracy scores
+
+```{r}
+TIME_LIMIT <- 2 #in seconds
+SCORE_BENCHMARK <- 72
+
+# gives subset df with all responses with:
+# 1. q3-q6 answered in <= TIME_LIMIT (secs)
+# 2. total scores <= BENCHMARK
+
+low_times <- all_times_df %>%
+  #filtering out Q1s and Q2s 
+  dplyr::select(-dplyr::contains("Q1"), -dplyr::contains("Q2")) %>%
+    #filtering for time<=TIME_LIMIT
+    dplyr::filter(if_any(-1, ~ . <= TIME_LIMIT)) %>%
+      #filtering for where SC0 <= BENCHMARK
+      dplyr::filter(SC0 <= SCORE_BENCHMARK)
+
+#name format: "low_time[TIMELIMIT]_score[BENCHMARK].csv"
+write.csv(low_times, file="low_time2_score72.csv")
+```
+
+## Data Analysis by Ques. Accuracy
+
+**How many times was \<question\> answered correctly?**
+
+```{r echo=FALSE}
+#all functions used for this part are defined here: 
+
+#returns accuracies (choice text) for all 144 questions
+all_accuracy <- function(df){
+  
+   #quest_ID <- rep(1:SAMPLE_SIZE)
+  
+    # Select specific columns
+  selected_columns <- df %>%
+    dplyr::select(matches(paste0("Q[1-6]$")), one_of("SC0"))
+  
+    
+  # Converting character vectors to numeric
+  data_numeric <- lapply(selected_columns, function(column) as.numeric(column))
+  
+# Combine participant_ID and data_numeric using data.frame()
+  res_df <- data.frame(data_numeric)
+  
+  return(res_df)
+}
+
+
+#function to count score achieved on each question, return as df
+# counts occurrences of 1, -1, -2, -5, -10 for each question, except 
+# the last column which has total scores
+score_counts <- function(df){
+
+  hits <- t(df %>% 
+    summarise(across(-last_col(), ~ sum(. == SCORE_VALUE, na.rm = TRUE))))
+  
+  neg_1 <- t(df %>% 
+    summarise(across(-last_col(), ~ sum(. == "-1", na.rm = TRUE))))
+  
+  neg_2 <- t(df %>% 
+    summarise(across(-last_col(), ~ sum(. == "-2", na.rm = TRUE))))
+  
+  neg_5 <- t(df %>% 
+    summarise(across(-last_col(), ~ sum(. == "-5", na.rm = TRUE))))
+  
+  neg_10 <- t(df %>% 
+    summarise(across(-last_col(), ~ sum(. == "-10", na.rm = TRUE))))
+  
+  return(list(hits = hits, neg_1 = neg_1, neg_2 = neg_2, neg_5 = neg_5, neg_10 = neg_10))
+}
+```
+
+```{r echo=FALSE}
+#to plot box and whisker plots for score + total time distributions
+# plots for each participants primary lang. questions (36) and universal questions
+#gpt used to display statistical summary as text on the side for time plots
+performance_boxplots <- function(df, pl, metric) {
+    # Create the universal plot
+    universal_plot <- ggplot(df, aes(x = "", y = df$univL_sum)) +
+      geom_boxplot() +
+      labs(x = "English", y = paste0("English ", metric, "-", pl, " respondents")) +
+      coord_flip()  # Flip the coordinates
+    
+    # Create the primary plot
+    primary_plot <- ggplot(df, aes(x = "", y = df$primaryL_sum)) +
+      geom_boxplot() +
+      labs(x = pl, y = paste0(pl," ", metric, "-", pl, " respondents")) +
+      coord_flip()  # Flip the coordinates
+    
+    if (metric == "Times") {
+      # Calculate summary statistics
+      universal_summary <- summary(df$univL_sum)
+      primary_summary <- summary(df$primaryL_sum)
+      
+      # Determine the maximum value for scaling
+      max_value <- max(c(df$univL_sum, df$primaryL_sum), na.rm = TRUE)
+      
+      # Set the y-axis limits based on the maximum value
+      universal_plot <- universal_plot + scale_y_continuous(limits = c(0, max_value))
+      primary_plot <- primary_plot + scale_y_continuous(limits = c(0, max_value))
+      
+      # Create text grobs for summaries
+      universal_text <- paste(capture.output(print(universal_summary)), collapse = "\n")
+      primary_text <- paste(capture.output(print(primary_summary)), collapse = "\n")
+      
+      universal_grob <- textGrob(universal_text, x = unit(0.5, "npc"), y = unit(0.5, "npc"),
+                                 just = "center", gp = gpar(fontsize = 10))
+      primary_grob <- textGrob(primary_text, x = unit(0.5, "npc"), y = unit(0.5, "npc"),
+                               just = "center", gp = gpar(fontsize = 10))
+      
+      # Combine plots and summary text
+      combined_universal_plot <- arrangeGrob(universal_plot, universal_grob, nrow = 2, heights = c(0.7, 0.3))
+      combined_primary_plot <- arrangeGrob(primary_plot, primary_grob, nrow = 2, heights = c(0.7, 0.3))
+      
+      grid.arrange(combined_universal_plot, combined_primary_plot, nrow = 2)
+    } else {
+      # Set the y-axis limits to 36 for metrics other than "Times"
+      universal_plot <- universal_plot + scale_y_continuous(limits = c(0, 36))
+      primary_plot <- primary_plot + scale_y_continuous(limits = c(0, 36))
+      
+      # Add stat_summary layer for non-Times metrics
+      universal_plot <- universal_plot +
+        stat_summary(geom = "text", fun = quantile,
+                     aes(label = sprintf("%1.0f", ..y..)),
+                     position = position_nudge(x = 0.2, y = 0.5), size = 2.5)
+      
+      primary_plot <- primary_plot +
+        stat_summary(geom = "text", fun = quantile,
+                     aes(label = sprintf("%1.0f", ..y..)),
+                     position = position_nudge(x = 0.2, y = 0.5), size = 2.5)
+        
+      # annotations for max score 
+      universal_plot <- universal_plot +
+        annotate("text", x = 0.5, y = 25, label = "Max.Possible Score: 36", hjust = -0.2, size = 3, color = "#353535")
+      
+      primary_plot <- primary_plot +
+        annotate("text", x = 0.5, y = 25, label = "Max. Possible Score: 36", hjust = -0.2, size = 3, color = "#353535")
+      
+      #to save plots as SVGs
+      ggsave(paste0("universal_plot_",pl,"_",metric,".svg"),plot=universal_plot,device="svg", height=3)
+      ggsave(paste0("primary_plot_",pl,"_",metric,".svg"),plot=primary_plot,device="svg", height=3)
+      
+      grid.arrange(universal_plot, primary_plot, nrow = 2)
+    }
+  }
+```
+
+**Summary of Accuracy of Each Question**
+
+See `ques_accuracy_summary.csv` for full details.
+
+```{r echo=FALSE}
+#constructing the accuracy summary for ALL 144 questions
+all_accuracies_df <- all_accuracy(pilotDF)
+
+counts <- score_counts(all_accuracies_df)
+
+# this step is specific to this (all quests.) summary
+acc_rates <- counts$hits[1:36,] / SAMPLE_SIZE
+acc_rates <- append(acc_rates,counts$hits[37:72,]/arb_primary_size)
+acc_rates <- append(acc_rates,counts$hits[73:108,]/urdu_primary_size)
+acc_rates <- append(acc_rates,counts$hits[109:144,]/eng_primary_size)
+pool_sizes <-c(rep(SAMPLE_SIZE, 36), rep(arb_primary_size,36), rep(urdu_primary_size, 36), rep(eng_primary_size,36))
+
+accuracy_summary <- data.frame(
+  count = counts$hits,
+  rate = acc_rates,
+  pool_size = pool_sizes,
+  neg_1 = counts$neg_1,
+  neg_2 = counts$neg_2,
+  neg_5 = counts$neg_5,
+  neg_10 = counts$neg_10
+)
+
+#save to csv
+write.csv(accuracy_summary, file="ques_accuracy_summary.csv")
+head(accuracy_summary)
+```
+
+### **Performance Breakdown of Eng - Urdu Responses**
+
+see `urdu_eng_accuracy_summary.csv` for full details
+
+```{r echo=FALSE}
+#constructing the accuracy summary for Urdu responses only
+
+# Filter rows where urdu column is not NA,
+# i.e Urdu responses have a value implying they were answered
+urdu_eng_acc_df <- all_accuracies_df %>%
+  filter(!is.na(all_accuracies_df$ULR1...Q1)) %>%
+  select(c(1:36,73:108,145))  # Select only Eng12 + Urdu columns
+
+# score counts
+counts <- score_counts(urdu_eng_acc_df)
+
+acc_rates <- counts$hits[1:36,] / urdu_primary_size
+acc_rates <- append(acc_rates,counts$hits[37:72,]/urdu_primary_size)
+
+# Display the resulting subset data frame
+urdu_eng_accuracy_summary <- data.frame(
+  count = counts$hits,
+  rate = acc_rates,
+  pool_size = urdu_primary_size,
+  neg_1 = counts$neg_1,
+  neg_2 = counts$neg_2,
+  neg_5 = counts$neg_5,
+  neg_10 = counts$neg_10
+)
+
+#save to csv
+write.csv(urdu_eng_accuracy_summary, file="urdu_eng_accuracy_summary.csv")
+head(urdu_eng_accuracy_summary)
+```
+
+**Performance Breakdown of Eng - Arabic responses**
+
+todo: accuracy summary
+
+**Performance Breakdown of Eng - English Responses**
+
+todo: accuracy summary
+
+## Metric Distribution: Box and Whisker Plots
+
+### English-Urdu
+
+***Distribution of SCORES per participant for Urdu responses***
+
+```{r echo=FALSE, warning=FALSE}
+# for urdu eng accuracy comparison 
+#make sure this step is AFTER calling score_counts on the df. score_counts is not designed to handle these extra 2 columns (yet). 
+
+urdu_eng_acc_df <- urdu_eng_acc_df %>%
+  mutate(primaryL_sum = rowSums(across(37:72, ~ . == SCORE_VALUE)))
+
+urdu_eng_acc_df <- urdu_eng_acc_df %>%
+  mutate(univL_sum = rowSums(across(1:36, ~ . == SCORE_VALUE)))
+
+performance_boxplots(urdu_eng_acc_df, "Urdu", "Scores")
+```
+
+***Distribution of TOTAL TIMES per participant for Urdu responses (MINUTES)***
+
+```{r echo=FALSE, warning=FALSE}
+# Filter rows where urdu column is not NA,
+# i.e Urdu responses have a value implying they were answered
+urdu_eng_time_df <- all_times_df %>%
+  filter(!is.na(all_times_df$ULR1...Q1)) %>%
+  select(c(2:37,74:109,146))  # Select only Eng12 + Urdu columns
+
+#compute total time for each participant, display sum in minutes
+urdu_eng_time_df <- urdu_eng_time_df %>%
+  mutate(primaryL_sum = rowSums(across(37:72), na.rm=TRUE)/60) #ignore 21 missing values
+
+urdu_eng_time_df <- urdu_eng_time_df %>%
+  mutate(univL_sum = rowSums(across(1:36))/60)
+
+performance_boxplots(urdu_eng_time_df, "Urdu", "Times")
+```
+
+### English-Arabic
+
+***Distribution of SCORES per participant for Arabic responses***
+
+```{r echo=FALSE, warning=FALSE}
+# Filter rows where arabic column is not NA,
+# i.e ARB responses have a value implying they were answered
+arb_eng_df <- all_accuracies_df %>%
+  filter(!is.na(all_accuracies_df$ALR1...Q1)) %>%
+  select(c(1:36,37:72,145))  # Select only Eng12 + arabic columns
+
+# for arb eng accuracy comparison 
+#make sure this step is AFTER calling score_counts on the df. score_counts is not designed to handle these extra 2 columns (yet). 
+arb_eng_df <- arb_eng_df %>%
+  mutate(primaryL_sum = rowSums(across(37:72, ~ . == SCORE_VALUE)))
+
+arb_eng_df <- arb_eng_df %>%
+  mutate(univL_sum = rowSums(across(1:36, ~ . == SCORE_VALUE)))
+
+performance_boxplots(arb_eng_df, "Arabic", "Scores")
+```
+
+***Distribution of TOTAL TIMES per participant for Arabic responses***
+
+```{r echo=FALSE, warning=FALSE}
+# Filter rows where urdu column is not NA,
+# i.e Urdu responses have a value implying they were answered
+arb_eng_time_df <- all_times_df %>%
+  filter(!is.na(all_times_df$ALR1...Q1)) %>%
+  select(c(2:37,38:73,146))  # Select only Eng12 + Arabic columns
+
+#compute total time for each participant, display sum in minutes
+arb_eng_time_df <- arb_eng_time_df %>%
+  mutate(primaryL_sum = rowSums(across(37:72))/60)
+
+arb_eng_time_df <- arb_eng_time_df %>%
+  mutate(univL_sum = rowSums(across(1:36))/60)
+
+performance_boxplots(arb_eng_time_df, "Arabic", "Times")
+```
+
+### English-English
+
+***Distribution of SCORES per participant for English responses***
+
+```{r echo=FALSE, warning=FALSE}
+# Filter rows where arabic column is not NA,
+# i.e ARB responses have a value implying they were answered
+eng_eng_df <- all_accuracies_df %>%
+  filter(!is.na(all_accuracies_df$ELR3...Q1)) %>%
+  select(c(1:36,109:144,145))  # Select only Eng12 + eng34 columns
+
+# for eng eng accuracy comparison 
+#make sure this step is AFTER calling score_counts on the df. score_counts is not designed to handle these extra 2 columns (yet). 
+eng_eng_df <- eng_eng_df %>%
+  mutate(primaryL_sum = rowSums(across(37:72, ~ . == SCORE_VALUE)))
+
+eng_eng_df <- eng_eng_df %>%
+  mutate(univL_sum = rowSums(across(1:36, ~ . == SCORE_VALUE)))
+
+performance_boxplots(eng_eng_df, "English Primary", "Scores")
+```
+
+***Distribution of TOTAL TIMES per participant for English responses (MINUTES)***
+
+```{r echo=FALSE, warning=FALSE}
+# Filter rows where egn34 column is not NA,
+# i.e eng responses have a value implying they were answered
+eng_eng_time_df <- all_times_df %>%
+  filter(!is.na(all_times_df$ELR3...Q1)) %>%
+  select(c(2:37,110:145,146))  # Select only Eng12 + Eng34 columns
+
+#compute total time for each participant, display sum in minutes
+eng_eng_time_df <- eng_eng_time_df %>%
+  mutate(primaryL_sum = rowSums(across(37:72))/60)
+
+eng_eng_time_df <- eng_eng_time_df %>%
+  mutate(univL_sum = rowSums(across(1:36))/60)
+
+performance_boxplots(eng_eng_time_df, "English Primary", "Times")
+```
+
+## Data Analysis by Time and Accuracy (Correlation)
+
+```{r}
+# calculating scores. accuracy (not weighted)
+all_times_df$Accuracy <- all_times_df$SC0 / 72
+
+#converting mean and median times to minutes (optional)
+all_times_df$Median_Minutes <- all_times_df$Median / 60
+all_times_df$Mean_Minutes <- all_times_df$Mean / 60
+
+# Add a color column to the data frame based on conditions
+all_times_df <- all_times_df %>%
+  mutate(Color = case_when(
+    is.na(ELR3...Q1.Time_Page.Submit) & is.na(ALR1...Q1.Time_Page.Submit) ~ "Urdu",
+    is.na(ALR1...Q1.Time_Page.Submit) & is.na(ULR1...Q1.Time_Page.Submit) ~ "English",
+    is.na(ELR3...Q1.Time_Page.Submit) & is.na(ULR1...Q1.Time_Page.Submit) ~ "Arabic",
+    TRUE ~ "Other"  # Default case for points not matching any condition
+  ))
+```
+
+### Correlation plot by Median Time
+
+**Raw score (unweighted accuracy) vs. *Median* response time**
+
+```{r}
+
+# scatterplto
+# to force trEnd line to start at (0,0), add this to geom_smooth params: formula = y ~ x - 1,
+plot <- ggplot(all_times_df, aes(x = Median, y = Accuracy)) +
+  geom_point(aes(color = Color), size = 2) +  # Use the new 'Color' column
+  geom_smooth(method = "lm", se = TRUE, color = "black") +  # Trend line with confidence intervals
+  labs(
+    title = "Accuracy vs. Median Response Times",
+    x = "Median Response Time (Seconds)",
+    y = "Accuracy"
+  ) +
+  scale_color_manual(values = c("Urdu" = "coral1", "English" = "cadetblue", "Arabic" = "gold3", "Other" = "black"),  labels = c(
+      paste0("English: ", eng_primary_size),
+      paste0("Urdu: ", urdu_primary_size),
+      paste0("Arabic: ", arb_primary_size))) +
+  scale_y_continuous(limits = c(0, 1)) +  # Y-axis limits
+  scale_x_continuous(limits = c(0, 35)) + # X-axis limits
+  theme_minimal() +
+    theme(legend.position = "bottom")  # to put legend below the plot
+
+# Print the plot
+print(plot)
+
+# Save the plot as an SVG file
+#ggsave("scatter_plot.svg", plot = plot, device = "svg")
+```
+
+### Correlation plot by Mean Time
+
+**Raw score (unweighted accuracy) vs. *Mean* response time**
+
+```{r}
+# scatterplto
+# to force trend line to start at (0,0), add this to geom_smooth params: formula = y ~ x - 1,
+plot <- ggplot(all_times_df, aes(x = Mean, y = Accuracy)) +
+  geom_point(aes(color = Color), size = 1) +  # Use the new 'Color' column
+  geom_smooth(method = "lm", se = TRUE, color = "black") +  # Trend line with confidence intervals
+  labs(
+    title = "Accuracy vs. Mean Response Times",
+    x = "Mean Response Time (Seconds)",
+    y = "Accuracy"
+  ) +
+  scale_color_manual(values = c("Urdu" = "coral1", "English" = "cadetblue", "Arabic" = "gold3", "Other" = "black")) +
+  scale_y_continuous(limits = c(0, 1)) +  # Y-axis limits
+  scale_x_continuous(limits = c(0, 50)) + # X-axis limits
+  theme_minimal()
+
+
+# Print the plot
+print(plot)
+```

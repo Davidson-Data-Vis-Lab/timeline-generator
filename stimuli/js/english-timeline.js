@@ -12,6 +12,7 @@
  * @param {String} title the title for the timeline, ex. "English Left- Right"
  * @returns {d3.Selection}  an SVG element
  */
+
 function createSVG(containerId, title) {
   const svg = d3
     .select(containerId)
@@ -75,7 +76,7 @@ function createXScale(domain, range) {
  * @returns {d3.Axis<number>} the x-axis to be used in the vis
  */
 function createXAxis(xScale, data) {
-  const engTimeFormat        = d3.timeFormat("\n%b %e"); //\n%-I%p
+  const engTimeFormat        = d3.timeFormat("\n%b %e \n%Y"); //\n%-I%p
   return d3
     .axisBottom(xScale)
     .tickFormat(engTimeFormat)

@@ -396,3 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.Rproj.user
+statistical-analysis/.Rhistory
+statistical-analysis/.Rhistory

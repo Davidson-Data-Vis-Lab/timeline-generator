@@ -117,21 +117,24 @@ const arabicLocale = {
     // using the arabic locale
     d3.timeFormatDefaultLocale(arabicLocale);
   
-    // Custom arabic time format function for AM/PM display
-    //const arabicTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
-  
     return d3
       .axisBottom(xScale)
       .tickFormat((d) => {
-        const dateFormat = d3.timeFormat("%e \n %B");
+        const dateFormat = d3.timeFormat("%e \n %B %Y");
         const formattedDate = dateFormat(d);
-        //const formattedTime = arabicTimeFormat(d);
-        return `${formattedDate}\n`; //${formattedTime}`
+        return `${formattedDate}\n`;
       })
   
       .tickValues(data.map((d) => d.date));
   }
   
+  /**
+ * Function to set up the y scale (time scale)
+ *
+ * @param {Array} domain the domain for the time scale; extent of dates
+ * @param {Array} range the range for the time scale; available width of the timeline
+ * @returns {d3.ScaleTime<number, number>} A D3 time scale object (the y-scale to be used for the vis)
+ */
   function createYScale(domain, range) {
     return d3.scaleTime().domain(domain).range(range);
   }
@@ -146,16 +149,12 @@ const arabicLocale = {
     // using the arabic locale
     d3.timeFormatDefaultLocale(arabicLocale);
   
-    // Custom arabic time format function for AM/PM display
-    //const arabicTimeFormat = d3.timeFormat("%I %p"); // e.g., "9am" or "2pm"
-  
     return d3
       .axisRight(yScale)
       .tickFormat((d) => {
         const dateFormat = d3.timeFormat("%Y ،%e %B");
         const formattedDate = dateFormat(d);
-        //const formattedTime = arabicTimeFormat(d);
-        return `${formattedDate}\n`; //${formattedTime}`
+        return `${formattedDate}\n`;
       })
   
       .tickValues(data.map((d) => d.date));

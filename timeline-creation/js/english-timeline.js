@@ -1,4 +1,8 @@
-/** This file contains the JS environment for creating English timelines.
+/** 
+ * File in /stimuli/js has recent updates and was used for the purposes of the study.
+ * Results of this file may differ. 
+ * 
+ * This file contains the JS environment for creating English timelines.
  *
  * Creates timelines in both Left-Right and Right-Left directions.
  *
